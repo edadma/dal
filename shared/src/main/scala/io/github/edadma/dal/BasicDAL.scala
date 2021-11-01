@@ -1,7 +1,7 @@
-package xyz.hyperreal.dal
+package io.github.edadma.dal
 
-import xyz.hyperreal.numbers.{BigDecimalMath, Rational}
-import xyz.hyperreal.numbers.BigDecimalMath.decimal128._
+import io.github.edadma.numbers.{BigDecimalMath, Rational}
+import io.github.edadma.numbers.BigDecimalMath.decimal128._
 
 import java.{lang => boxed}
 import scala.math.{BigInt, pow}

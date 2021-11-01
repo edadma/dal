@@ -1,6 +1,6 @@
-package xyz.hyperreal
+package io.github.edadma
 
-import xyz.hyperreal.numbers.{ComplexBigDecimal, ComplexBigInt, ComplexDouble, ComplexInt, ComplexRational, Rational}
+import io.github.edadma.numbers.{ComplexBigDecimal, ComplexBigInt, ComplexDouble, ComplexInt, ComplexRational, Rational}
 
 import math.{sqrt => sqr, _}
 import java.{lang => boxed}

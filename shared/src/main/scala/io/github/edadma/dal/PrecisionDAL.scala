@@ -1,10 +1,10 @@
-package xyz.hyperreal.dal
+package io.github.edadma.dal
 
 import java.{lang => boxed}
 
 import scala.math.{BigInt, pow}
 
-import xyz.hyperreal.numbers.BigDecimalMath
+import io.github.edadma.numbers.BigDecimalMath
 import BigDecimalMath.decimal128._
 
 object PrecisionDAL extends DAL {

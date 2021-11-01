@@ -1,9 +1,9 @@
-package xyz.hyperreal.dal
+package io.github.edadma.dal
 
 import java.math.{MathContext, RoundingMode}
 import java.{lang => boxed}
 import scala.math._
-import xyz.hyperreal.numbers.{
+import io.github.edadma.numbers.{
   BigDecimalMath,
   ComplexBigDecimal,
   ComplexBigInt,
@@ -415,7 +415,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                  => maybePromote(abs(a.longValue))._2
       case a: BigInt                         => maybeDemote(a.abs)._2
-      case a: xyz.hyperreal.numbers.Rational => a.abs
+      case a: io.github.edadma.numbers.Rational => a.abs
       case a: boxed.Double                   => abs(a)
       case a: BigDecimal                     => a.abs
       case a: ComplexBigInt                  => a.abs
@@ -428,7 +428,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                  => log(a.doubleValue)
       case a: BigInt                         => log(a.doubleValue)
-      case a: xyz.hyperreal.numbers.Rational => log(a.doubleValue)
+      case a: io.github.edadma.numbers.Rational => log(a.doubleValue)
       case a: boxed.Double                   => log(a)
       case a: BigDecimal                     => BigDecimalMath.ln(a)
       case a: ComplexBigInt                  => a.ln
@@ -441,7 +441,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                  => a
       case a: BigInt                         => maybeDemote(a)._2
-      case a: xyz.hyperreal.numbers.Rational => a.floor
+      case a: io.github.edadma.numbers.Rational => a.floor
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.FLOOR)
 
@@ -460,7 +460,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                  => a
       case a: BigInt                         => maybeDemote(a)._2
-      case a: xyz.hyperreal.numbers.Rational => a.ceil
+      case a: io.github.edadma.numbers.Rational => a.ceil
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.CEILING)
 

@@ -1,4 +1,4 @@
-package xyz.hyperreal.dal
+package io.github.edadma.dal
 
 trait PrecisionNumberIsFractional extends Fractional[Number] {
 
