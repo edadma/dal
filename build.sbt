@@ -5,7 +5,7 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("."
   settings(
     name := "dal",
     version := "0.1.0",
-    scalaVersion := "2.13.6",
+    scalaVersion := "2.13.7",
     scalacOptions ++=
       Seq(
         "-deprecation", "-feature", "-unchecked",
