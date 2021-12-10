@@ -233,29 +233,29 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   protected def boolean(b: Boolean): (Type, Boolean) = (null, b)
 
-  protected def maybeDemote(n: Double): (Type, Number) =
-    if (n.isValidInt)
-      (IntType, n.toInt.asInstanceOf[Number])
-    else if (n.isWhole)
-      (BigIntType, BigInt(n.toLong))
-    else
-      (DoubleType, n)
+//  protected def maybeDemote(n: Double): (Type, Number) =
+//    if (n.isValidInt)
+//      (IntType, n.toInt.asInstanceOf[Number])
+//    else if (n.isWhole)
+//      (BigIntType, BigInt(n.toLong))
+//    else
+//      (DoubleType, n)
+//
+//  protected def maybeDemote(n: BigDecimal): (Type, Number) =
+//    if (n.isValidInt)
+//      (IntType, n.toInt.asInstanceOf[Number])
+//    else if (n.isWhole)
+//      (BigIntType, n.toBigInt)
+//    else
+//      (BigDecType, n)
 
-  protected def maybeDemote(n: BigDecimal): (Type, Number) =
-    if (n.isValidInt)
-      (IntType, n.toInt.asInstanceOf[Number])
-    else if (n.isWhole)
-      (BigIntType, n.toBigInt)
-    else
-      (BigDecType, n)
-
-  protected def maybeDemote(n: BigInt): (Type, Number) =
+  def maybeDemote(n: BigInt): (Type, Number) =
     if (n.isValidInt)
       (IntType, n.toInt.asInstanceOf[Number])
     else
       (BigIntType, n)
 
-  protected def maybeDemote(r: Rational): (Type, Number) =
+  def maybeDemote(r: Rational): (Type, Number) =
     if (r.isInt) {
       if (r.n.isValidInt)
         (IntType, r.intValue.asInstanceOf[Number])
