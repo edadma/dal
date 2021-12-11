@@ -1,10 +1,12 @@
 package io.github.edadma.dal
 
-import io.github.edadma.numbers.Rational
+import io.github.edadma.numbers.{ComplexBigInt, Rational}
 
 import scala.language.postfixOps
 
 object Main extends App {
+
+  println(ComplexBigInt.i^2)
 
   val a = Rational(1, 4)
   val b = PrecisionDAL.compute("/", 3, 4)
