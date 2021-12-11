@@ -6,7 +6,7 @@ import scala.language.postfixOps
 
 object Main extends App {
 
-  println(ComplexBigInt.i^2)
+  println(ComplexDAL.compute("^", ComplexBigInt.i, 2.0))
 
   val a = Rational(1, 4)
   val b = PrecisionDAL.compute("/", 3, 4)

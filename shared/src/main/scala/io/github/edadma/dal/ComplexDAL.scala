@@ -99,8 +99,20 @@ object ComplexDAL extends DAL {
     }),
     DoubleType -> ((l: Number, r: Number) => (DoubleType, pow(l.doubleValue, r.doubleValue): Number)),
     BigDecType -> ((l: Number, r: Number) => (BigDecType, BigDecimalMath.pow(toBigDecimal(l), toBigDecimal(r)))),
-    ComplexBigIntType -> ((l: Number, r: Number) => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))),
-    ComplexRationalType -> ((l: Number, r: Number) => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))),
+    ComplexBigIntType -> ((l: Number, r: Number) =>
+      r match {
+        case p: boxed.Integer => (ComplexBigIntType, toComplexBigInt(l) ^ p)
+        case p: boxed.Long => (ComplexBigIntType, toComplexBigInt(l) ^ BigInt(p))
+        case p: BigInt => (ComplexBigIntType, toComplexBigInt(l) ^p)
+        case _ => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))
+      }),
+    ComplexRationalType -> ((l: Number, r: Number) =>
+      r match {
+        case p: boxed.Integer => (ComplexRationalType, toComplexRational(l) ^ p)
+        case p: boxed.Long => (ComplexRationalType, toComplexRational(l) ^ BigInt(p))
+        case p: BigInt => (ComplexRationalType, toComplexRational(l) ^p)
+        case _ => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))
+      }),
     ComplexDoubleType -> ((l: Number, r: Number) => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))),
     ComplexBigDecType -> ((l: Number, r: Number) => (ComplexBigDecType, toComplexBigDecimal(l) ^ toComplexBigDecimal(r)))
   )
