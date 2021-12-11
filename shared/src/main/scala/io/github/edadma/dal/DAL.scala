@@ -112,7 +112,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case d: boxed.Double    => ComplexDouble(d)
       case r: Rational        => ComplexDouble(r.doubleValue)
       case bi: BigInt         => ComplexDouble(bi.doubleValue)
-      case cbi: ComplexBigInt => ComplexDouble(cbi.re.doubleValue, cbi.re.doubleValue)
+      case cbi: ComplexBigInt => ComplexDouble(cbi.re.doubleValue, cbi.im.doubleValue)
       case _                  => sys.error("can't convert from " + a)
     }
 
