@@ -4,27 +4,26 @@ ThisBuild / versionScheme := Some("semver-spec")
 lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "dal",
-    version := "0.1.5",
-    scalaVersion := "2.13.7",
+    version := "0.1.6",
+    scalaVersion := "3.1.1",
     scalacOptions ++=
       Seq(
         "-deprecation", "-feature", "-unchecked",
         "-language:postfixOps", "-language:implicitConversions", "-language:existentials", "-language:dynamics",
-        "-Xasync"
       ),
     organization := "io.github.edadma",
     githubOwner := "edadma",
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "test",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.11" % "test",
     libraryDependencies ++= Seq(
-      "io.github.edadma" %%% "numbers" % "0.1.1"
+      "io.github.edadma" %%% "numbers" % "0.1.2"
     ),
     publishMavenStyle := true,
     Test / publishArtifact := false
   ).
   jvmSettings(
-    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
+    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
   ).
   nativeSettings(
     nativeLinkStubs := true
