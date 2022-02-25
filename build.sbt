@@ -4,7 +4,7 @@ ThisBuild / versionScheme := Some("semver-spec")
 lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "dal",
-    version := "0.1.6",
+    version := "0.1.7",
     scalaVersion := "3.1.1",
     scalacOptions ++=
       Seq(
@@ -15,7 +15,7 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("."
     githubOwner := "edadma",
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.11" % "test",
+//    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.11" % "test",
     libraryDependencies ++= Seq(
       "io.github.edadma" %%% "numbers" % "0.1.2"
     ),

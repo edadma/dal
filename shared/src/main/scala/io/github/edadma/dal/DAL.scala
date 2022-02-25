@@ -323,6 +323,15 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       r.asInstanceOf[Boolean]
   }
 
+  def compare[T <: TypedNumber](op: Symbol, left: TypedNumber, right: TypedNumber): Int = {
+    val (t, n) = opmap(left.typ, op, right.typ)(left.value, right.value)
+
+    if (t == null)
+      sys.error(s"operation '$op' does not return number")
+    else
+      n.intValue
+  }
+
   def compute[T <: TypedNumber](op: Symbol, left: TypedNumber, right: TypedNumber, number: ((Type, Number)) => T): T = {
     val n @ (t, _) = opmap(left.typ, op, right.typ)(left.value, right.value)
 
