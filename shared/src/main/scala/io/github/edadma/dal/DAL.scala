@@ -329,7 +329,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     if (t == null)
       sys.error(s"operation '$op' does not return number")
     else
-      n.intValue
+      n.asInstanceOf[Number].intValue
   }
 
   def compute[T <: TypedNumber](op: Symbol, left: TypedNumber, right: TypedNumber, number: ((Type, Number)) => T): T = {
