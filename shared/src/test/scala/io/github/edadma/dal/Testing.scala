@@ -27,9 +27,14 @@ def parseNumber(s: String): Number = {
     // Rational numbers like "3/4"
     case rational if rational.contains('/') && !rational.contains('.') =>
       try {
-        Rational(rational)
+        // Try SmallRational first for efficiency
+        SmallRational(rational)
       } catch {
-        case _: Exception => throw new IllegalArgumentException(s"Invalid rational: $s")
+        case _: ArithmeticException =>
+          // Fallback to big Rational on overflow
+          Rational(rational)
+        case _: Exception =>
+          throw new IllegalArgumentException(s"Invalid rational: $s")
       }
 
     // Decimal numbers
