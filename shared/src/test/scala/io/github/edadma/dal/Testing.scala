@@ -46,11 +46,13 @@ def parseNumber(s: String): Number = {
       }
 
     // Integer numbers (promote to BigInt if needed)
+    // Integer numbers (promote through the type hierarchy)
     case integer =>
       try {
         BigInt(integer) match {
-          case n if n.isValidInt => n.toInt.asInstanceOf[Number]
-          case n                 => n
+          case n if n.isValidInt  => n.toInt.asInstanceOf[Number]
+          case n if n.isValidLong => n.toLong.asInstanceOf[Number]
+          case n                  => n
         }
       } catch {
         case _: NumberFormatException => throw new IllegalArgumentException(s"Invalid integer: $s")

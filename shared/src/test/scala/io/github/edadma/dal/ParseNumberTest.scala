@@ -16,6 +16,15 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     parseNumber(large) shouldBe BigInt(large)
   }
 
+  it should "parse long integers correctly" in {
+    val longVal = (Int.MaxValue.toLong + 1).toString
+    parseNumber(longVal) shouldBe a[java.lang.Long]
+  }
+
+  it should "parse negative large integers" in {
+    parseNumber("-123456789012345678901234567890") shouldBe BigInt("-123456789012345678901234567890")
+  }
+
   it should "parse small rationals efficiently" in {
     val result = parseNumber("3/4")
     result shouldBe a[SmallRational]
