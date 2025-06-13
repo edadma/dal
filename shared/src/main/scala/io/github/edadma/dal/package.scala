@@ -1,10 +1,19 @@
 package io.github.edadma
 
-import io.github.edadma.numbers.{ComplexBigDecimal, ComplexBigInt, ComplexDouble, ComplexInt, ComplexRational, Rational, SmallRational}
+import io.github.edadma.numbers.{
+  ComplexBigDecimal,
+  ComplexBigInt,
+  ComplexDouble,
+  ComplexInt,
+  ComplexRational,
+  Rational,
+  SmallRational,
+}
 
 import math.{sqrt as sqr, *}
 import java.lang as boxed
 import scala.annotation.tailrec
+import scala.language.postfixOps
 
 package object dal {
   type Operator = (Number, Number) => (Type, AnyRef)

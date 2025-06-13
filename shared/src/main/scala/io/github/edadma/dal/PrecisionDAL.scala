@@ -12,7 +12,7 @@ object PrecisionDAL extends DAL {
     IntType           -> ((l: Number, r: Number) => maybePromote(l.longValue + r.longValue)),
     LongType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) + toBigInt(r))),
     BigIntType        -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) + toBigInt(r))),
-    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeAdd)),
+    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeAdd, _ + _)),
     RationalType      -> ((l: Number, r: Number) => maybeDemote(toRational(l) + toRational(r))),
     DoubleType        -> ((l: Number, r: Number) => (DoubleType, l.doubleValue + r.doubleValue: Number)),
     BigDecType        -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) + toBigDecimal(b))),
@@ -23,7 +23,7 @@ object PrecisionDAL extends DAL {
     IntType           -> ((l: Number, r: Number) => maybePromote(l.longValue - r.longValue)),
     LongType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) - toBigInt(r))),
     BigIntType        -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) - toBigInt(r))),
-    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeSubtract)),
+    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeSubtract, _ - _)),
     RationalType      -> ((l: Number, r: Number) => maybeDemote(toRational(l) - toRational(r))),
     DoubleType        -> ((l: Number, r: Number) => (DoubleType, l.doubleValue - r.doubleValue: Number)),
     BigDecType        -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) - toBigDecimal(b))),
@@ -34,7 +34,7 @@ object PrecisionDAL extends DAL {
     IntType           -> ((l: Number, r: Number) => maybePromote(l.longValue * r.longValue)),
     LongType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) * toBigInt(r))),
     BigIntType        -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) * toBigInt(r))),
-    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeMultiply)),
+    SmallRationalType -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeMultiply, _ * _)),
     RationalType      -> ((l: Number, r: Number) => maybeDemote(toRational(l) * toRational(r))),
     DoubleType        -> ((l: Number, r: Number) => (DoubleType, l.doubleValue * r.doubleValue: Number)),
     BigDecType        -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) * toBigDecimal(b))),
@@ -60,7 +60,7 @@ object PrecisionDAL extends DAL {
     }),
     BigIntType -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
     SmallRationalType -> ((l: Number, r: Number) =>
-      safeSmallRationalOp(l, r, SmallRational.safeDivide)
+      safeSmallRationalOp(l, r, SmallRational.safeDivide, _ / _)
     ),
     RationalType -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
     DoubleType   -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),

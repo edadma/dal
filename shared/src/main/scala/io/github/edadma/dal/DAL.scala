@@ -214,6 +214,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       a: Number,
       b: Number,
       safeOp: (SmallRational, SmallRational) => Option[SmallRational],
+      fallbackOp: (Rational, Rational) => Rational,
   ): (Type, Number) = {
     val sr1 = toSmallRational(a)
     val sr2 = toSmallRational(b)
@@ -222,7 +223,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case Some(result) => maybeDemote(result)
       case None         =>
         // Promote to Rational on overflow
-        val result = sr1.toRational + sr2.toRational // Use appropriate operation
+        val result = fallbackOp(sr1.toRational, sr2.toRational)
         maybeDemote(result)
     }
   }
