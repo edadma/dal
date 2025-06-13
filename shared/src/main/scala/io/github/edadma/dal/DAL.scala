@@ -247,7 +247,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     if (n.im.isZero)
       if (n.re.isWhole)
         if (n.re.numerator.isValidInt)
-          (IntType, Integer valueOf n.re.numerator.toInt)
+          (IntType, Integer.valueOf(n.re.numerator.toInt))
         else
           (BigIntType, n.re.numerator)
       else
@@ -261,7 +261,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     if (n.b.isZero && n.c.isZero && n.d.isZero)
       if (n.a.isWhole)
         if (n.a.numerator.isValidInt)
-          (IntType, Integer valueOf n.a.numerator.toInt)
+          (IntType, Integer.valueOf(n.a.numerator.toInt))
         else
           (BigIntType, n.a.numerator)
       else
@@ -402,12 +402,14 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def negate(typ: Type, n: Number): (Type, Number) =
     (typ, n) match {
-      case (IntType, a: boxed.Integer)   => (IntType, -a)
-      case (LongType, a: boxed.Long)     => (LongType, -a)
-      case (BigIntType, a: BigInt)       => (BigIntType, -a)
-      case (RationalType, a: Rational)   => (RationalType, -a)
-      case (DoubleType, a: boxed.Double) => (DoubleType, -a)
-      case (BigDecType, a: BigDecimal)   => (BigDecType, -a)
+      case (IntType, a: boxed.Integer)           => (IntType, -a)
+      case (LongType, a: boxed.Long)             => (LongType, -a)
+      case (BigIntType, a: BigInt)               => (BigIntType, -a)
+      case (SmallRationalType, a: SmallRational) => (SmallRationalType, -a)
+      case (RationalType, a: Rational)           => (RationalType, -a)
+      case (DoubleType, a: boxed.Double)         => (DoubleType, -a)
+      case (BigDecType, a: BigDecimal)           => (BigDecType, -a)
+      case (_, _)                                => ???
     }
 
   def negate[T <: TypedNumber](n: TypedNumber, number: ((Type, Number)) => T): T =

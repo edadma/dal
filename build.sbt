@@ -13,7 +13,7 @@ ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(tru
 ThisBuild / resolvers ++= Seq(
   Resolver.mavenLocal,
 )
-ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots") ++ Resolver.sonatypeOssRepos("releases")
+ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
 
 ThisBuild / sonatypeProfileName := "io.github.edadma"
 
@@ -56,10 +56,11 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
         "-language:existentials",
         "-language:dynamics",
       ),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.19" % "test",
-    libraryDependencies += "io.github.edadma" %%% "numbers" % "0.0.4",
-    publishMavenStyle := true,
-    Test / publishArtifact := false,
+    libraryDependencies += "org.scalatest"    %%% "scalatest" % "3.2.19" % "test",
+    libraryDependencies += "com.lihaoyi"      %%% "pprint"    % "0.9.0"  % "test",
+    libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.4",
+    publishMavenStyle                          := true,
+    Test / publishArtifact                     := false,
   )
   .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
@@ -73,7 +74,7 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     //    Test / scalaJSUseTestModuleInitializer := false,
     Test / scalaJSUseMainModuleInitializer := false,
     Test / scalaJSUseTestModuleInitializer := true,
-    scalaJSUseMainModuleInitializer := true,
+    scalaJSUseMainModuleInitializer        := true,
   )
 
 lazy val root = project

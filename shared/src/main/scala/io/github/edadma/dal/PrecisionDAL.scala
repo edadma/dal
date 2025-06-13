@@ -206,12 +206,12 @@ object PrecisionDAL extends DAL {
 
   operation(
     Symbol("compare"),
-    IntType      -> ((l: Number, r: Number) => (IntType, l.intValue compare r.intValue: Number)),
-    LongType     -> ((l: Number, r: Number) => (IntType, l.longValue compare r.longValue: Number)),
-    BigIntType   -> ((l: Number, r: Number) => (IntType, toBigInt(l) compare toBigInt(r): Number)),
-    RationalType -> ((l: Number, r: Number) => (IntType, toRational(l) compare toRational(r): Number)),
-    DoubleType   -> ((l: Number, r: Number) => (IntType, l.doubleValue compare r.doubleValue: Number)),
-    BigDecType   -> ((l: Number, r: Number) => (IntType, toBigDecimal(l) compare toBigDecimal(r): Number)),
+    IntType      -> ((l: Number, r: Number) => (IntType, l.intValue.compare(r.intValue): Number)),
+    LongType     -> ((l: Number, r: Number) => (IntType, l.longValue.compare(r.longValue): Number)),
+    BigIntType   -> ((l: Number, r: Number) => (IntType, toBigInt(l).compare(toBigInt(r)): Number)),
+    RationalType -> ((l: Number, r: Number) => (IntType, toRational(l).compare(toRational(r)): Number)),
+    DoubleType   -> ((l: Number, r: Number) => (IntType, l.doubleValue.compare(r.doubleValue): Number)),
+    BigDecType   -> ((l: Number, r: Number) => (IntType, toBigDecimal(l).compare(toBigDecimal(r)): Number)),
   )
 
 }
