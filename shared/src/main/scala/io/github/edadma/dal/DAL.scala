@@ -1,8 +1,8 @@
 package io.github.edadma.dal
 
 import java.math.{MathContext, RoundingMode}
-import java.{lang => boxed}
-import scala.math._
+import java.lang as boxed
+import scala.math.*
 import io.github.edadma.numbers.{
   BigDecimalMath,
   ComplexBigDecimal,
@@ -13,14 +13,15 @@ import io.github.edadma.numbers.{
   QuaternionBigInt,
   QuaternionDouble,
   QuaternionRational,
-  Rational
+  Rational,
+  SmallRational,
 }
 
 import scala.collection.mutable
 
 abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
-  protected val opmap = new mutable.HashMap[(Type, Symbol, Type), Operator]
+  protected val opmap    = new mutable.HashMap[(Type, Symbol, Type), Operator]
   protected val specials = new mutable.HashMap[(Type, Type), Type]
 
   protected def mathContext(p: Int) = new MathContext(p, RoundingMode.HALF_EVEN)
@@ -43,7 +44,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def bigDecimal(n: BigInt): BigDecimal = {
     val len = digits(n)
-    val m = if (len >= bdmath.mc.getPrecision) mathContext(len + 5) else bdmath.mc
+    val m   = if (len >= bdmath.mc.getPrecision) mathContext(len + 5) else bdmath.mc
 
     BigDecimal(n, m)
   }
@@ -51,11 +52,22 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
   def decimal(s: String): Any = {
     val res = BigDecimal(s, bdmath.mc)
 
-    if (res.isExactDouble) //isValidDouble)
+    if (res.isExactDouble) // isValidDouble)
       res.toDouble
     else
       res
   }
+
+  def toSmallRational(a: Number): SmallRational =
+    a match {
+      case sr: SmallRational            => sr
+      case i: boxed.Integer             => SmallRational(i.toLong)
+      case l: boxed.Long                => SmallRational(l)
+      case bi: BigInt if bi.isValidLong => SmallRational(bi.toLong)
+      case r: Rational if r.numerator.isValidLong && r.denominator.isValidLong =>
+        SmallRational(r.numerator.toLong, r.denominator.toLong)
+      case _ => sys.error("can't convert to SmallRational from " + a)
+    }
 
   def toBigDecimal(a: Number): BigDecimal =
     a match {
@@ -150,12 +162,13 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
   def toQuaternionBigDecimal(a: Number): QuaternionBigDecimal =
     a match {
       case q: QuaternionBigDecimal => q
-      case q: QuaternionBigInt     => QuaternionBigDecimal(BigDecimal(q.a), BigDecimal(q.b), BigDecimal(q.c), BigDecimal(q.d))
-      case cbi: ComplexBigInt      => QuaternionBigDecimal(BigDecimal(cbi.re), BigDecimal(cbi.im), 0, 0)
-      case cd: ComplexBigDecimal   => QuaternionBigDecimal(cd.re, cd.im, 0, 0)
-      case bd: BigDecimal          => QuaternionBigDecimal(bd)
-      case i: boxed.Integer        => QuaternionBigDecimal(i.asInstanceOf[Int])
-      case d: boxed.Double         => QuaternionBigDecimal(d.asInstanceOf[Double])
+      case q: QuaternionBigInt =>
+        QuaternionBigDecimal(BigDecimal(q.a), BigDecimal(q.b), BigDecimal(q.c), BigDecimal(q.d))
+      case cbi: ComplexBigInt    => QuaternionBigDecimal(BigDecimal(cbi.re), BigDecimal(cbi.im), 0, 0)
+      case cd: ComplexBigDecimal => QuaternionBigDecimal(cd.re, cd.im, 0, 0)
+      case bd: BigDecimal        => QuaternionBigDecimal(bd)
+      case i: boxed.Integer      => QuaternionBigDecimal(i.asInstanceOf[Int])
+      case d: boxed.Double       => QuaternionBigDecimal(d.asInstanceOf[Double])
       case Rational(n, d) =>
         val quo = toBigDecimal(n) / toBigDecimal(d)
 
@@ -168,11 +181,11 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     }
 
   protected def intOrDouble(n: Rational): (Type, Number) =
-    if (n.isInt)
-      if (n.n.isValidInt)
-        (IntType, n.n.intValue)
+    if (n.isWhole)
+      if (n.numerator.isValidInt)
+        (IntType, n.numerator.intValue)
       else
-        (BigIntType, n.n)
+        (BigIntType, n.numerator)
     else
       (DoubleType, n.doubleValue)
 
@@ -185,6 +198,34 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
         else maybeDemote(res)
       case _ => sys.error(s"exponent too small or too large: $e")
     }
+
+  def maybeDemote(sr: SmallRational): (Type, Number) =
+    if (sr.isWhole) {
+      if (sr.numerator >= Int.MinValue && sr.numerator <= Int.MaxValue)
+        (IntType, sr.numerator.toInt.asInstanceOf[Number])
+      else if (sr.numerator >= Long.MinValue && sr.numerator <= Long.MaxValue)
+        (LongType, sr.numerator.asInstanceOf[Number])
+      else
+        (BigIntType, BigInt(sr.numerator))
+    } else
+      (SmallRationalType, sr)
+
+  protected def safeSmallRationalOp(
+      a: Number,
+      b: Number,
+      safeOp: (SmallRational, SmallRational) => Option[SmallRational],
+  ): (Type, Number) = {
+    val sr1 = toSmallRational(a)
+    val sr2 = toSmallRational(b)
+
+    safeOp(sr1, sr2) match {
+      case Some(result) => maybeDemote(result)
+      case None         =>
+        // Promote to Rational on overflow
+        val result = sr1.toRational + sr2.toRational // Use appropriate operation
+        maybeDemote(result)
+    }
+  }
 
   def maybeDemote(n: ComplexBigInt): (Type, Number) =
     if (n.im == 0)
@@ -203,31 +244,31 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def maybeDemote(n: ComplexRational): (Type, Number) =
     if (n.im.isZero)
-      if (n.re.isInt)
-        if (n.re.n.isValidInt)
-          (IntType, Integer valueOf n.re.n.toInt)
+      if (n.re.isWhole)
+        if (n.re.numerator.isValidInt)
+          (IntType, Integer valueOf n.re.numerator.toInt)
         else
-          (BigIntType, n.re.n)
+          (BigIntType, n.re.numerator)
       else
         (RationalType, n.re)
-    else if (n.re.isInt && n.im.isInt)
-      (ComplexBigIntType, ComplexBigInt(n.re.n, n.im.n))
+    else if (n.re.isWhole && n.im.isWhole)
+      (ComplexBigIntType, ComplexBigInt(n.re.numerator, n.im.numerator))
     else
       (ComplexRationalType, n)
 
   def maybeDemote(n: QuaternionRational): (Type, Number) =
     if (n.b.isZero && n.c.isZero && n.d.isZero)
-      if (n.a.isInt)
-        if (n.a.n.isValidInt)
-          (IntType, Integer valueOf n.a.n.toInt)
+      if (n.a.isWhole)
+        if (n.a.numerator.isValidInt)
+          (IntType, Integer valueOf n.a.numerator.toInt)
         else
-          (BigIntType, n.a.n)
+          (BigIntType, n.a.numerator)
       else
         (RationalType, n.a)
     else if (n.c.isZero && n.d.isZero)
-      maybeDemote(ComplexRational(n.a.n, n.b.n))
-    else if (n.a.isInt && n.b.isInt && n.c.isInt && n.d.isInt)
-      (QuaternionBigIntType, QuaternionBigInt(n.a.n, n.b.n, n.c.n, n.d.n))
+      maybeDemote(ComplexRational(n.a.numerator, n.b.numerator))
+    else if (n.a.isWhole && n.b.isWhole && n.c.isWhole && n.d.isWhole)
+      (QuaternionBigIntType, QuaternionBigInt(n.a.numerator, n.b.numerator, n.c.numerator, n.d.numerator))
     else
       (QuaternionRationalType, n)
 
@@ -256,15 +297,20 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       (BigIntType, n)
 
   def maybeDemote(r: Rational): (Type, Number) =
-    if (r.isInt) {
-      if (r.n.isValidInt)
+    if (r.isWhole) {
+      if (r.numerator.isValidInt)
         (IntType, r.intValue.asInstanceOf[Number])
-      else if (r.n.isValidLong)
+      else if (r.numerator.isValidLong)
         (LongType, r.longValue.asInstanceOf[Number])
       else
-        (BigIntType, r.n)
-    } else
-      (RationalType, r)
+        (BigIntType, r.numerator)
+    } else {
+      if (r.numerator.isValidLong && r.denominator.isValidLong) {
+        (SmallRationalType, SmallRational(r.numerator.toLong, r.denominator.toLong))
+      } else {
+        (RationalType, r)
+      }
+    }
 
   protected def maybePromote(n: Long): (Type, Number) =
     if (n.isValidInt)
@@ -290,7 +336,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     define(op, funcs.asInstanceOf[Seq[(Type, Operator)]])
 
   protected def define(op: Symbol, funcs: Seq[(Type, Operator)]): Unit = {
-    val rank = new mutable.HashMap[Type, Int]
+    val rank               = new mutable.HashMap[Type, Int]
     val types: Array[Type] = funcs.map(_._1).toArray
 
     for ((t, r) <- types.zipWithIndex)
@@ -341,7 +387,13 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
   def perform(op: Symbol, left: Number, right: Number): Any =
     opmap(numberType(left), op, numberType(right))(left, right)._2
 
-  def perform[T](op: Symbol, left: TypedNumber, right: TypedNumber, number: ((Type, Number)) => T, boolean: Boolean => T): T =
+  def perform[T](
+      op: Symbol,
+      left: TypedNumber,
+      right: TypedNumber,
+      number: ((Type, Number)) => T,
+      boolean: Boolean => T,
+  ): T =
     opmap(left.typ, op, right.typ)(left.value, right.value) match {
       case (null, b: java.lang.Boolean) => boolean(b)
       case n                            => number(n.asInstanceOf[(Type, Number)])
@@ -373,14 +425,14 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def invert(n: Number): (Type, Number) =
     n match {
-      case a: boxed.Integer => maybePromote(~a & 0xFFFFFFFFL)
+      case a: boxed.Integer => maybePromote(~a & 0xffffffffL)
       case a: BigInt        => maybeDemote(~a)
     }
 
   def sqrtFunction(n: Any): Number =
     n match {
       case a: boxed.Integer =>
-        val n = abs(a)
+        val n  = abs(a)
         val dr = sqrt(n.toDouble)
         val ir = round(dr).toInt
 
@@ -398,9 +450,9 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
         def rsqrt = if (a < 0) new ComplexDouble(0, sqrt(ar.doubleValue)) else sqrt(ar.doubleValue).asInstanceOf[Number]
 
-        bisqrt(ar.n) match {
+        bisqrt(ar.numerator) match {
           case Left(irn) =>
-            bisqrt(ar.d) match {
+            bisqrt(ar.denominator) match {
               case Left(ird) =>
                 val res = Rational(irn, ird)
 
@@ -409,9 +461,9 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
             }
           case _ => rsqrt
         }
-      case a: boxed.Double      => if (a < 0) new ComplexDouble(0, sqrt(-a)) else sqrt(a)
-      case a: BigDecimal        => if (a < 0) new ComplexBigDecimal(0, BigDecimalMath.sqrt(-a)) else BigDecimalMath.sqrt(a)
-      case a: ComplexBigInt     => a.sqrt
+      case a: boxed.Double  => if (a < 0) new ComplexDouble(0, sqrt(-a)) else sqrt(a)
+      case a: BigDecimal    => if (a < 0) new ComplexBigDecimal(0, BigDecimalMath.sqrt(-a)) else BigDecimalMath.sqrt(a)
+      case a: ComplexBigInt => a.sqrt
       case a: ComplexRational   => a.sqrt
       case a: ComplexDouble     => a.sqrt
       case a: ComplexBigDecimal => a.sqrt
@@ -419,34 +471,34 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def absFunction(n: Any): Number =
     n match {
-      case a: boxed.Integer                  => maybePromote(abs(a.longValue))._2
-      case a: BigInt                         => maybeDemote(a.abs)._2
+      case a: boxed.Integer                     => maybePromote(abs(a.longValue))._2
+      case a: BigInt                            => maybeDemote(a.abs)._2
       case a: io.github.edadma.numbers.Rational => a.abs
-      case a: boxed.Double                   => abs(a)
-      case a: BigDecimal                     => a.abs
-      case a: ComplexBigInt                  => a.abs
-      case a: ComplexRational                => a.abs
-      case a: ComplexDouble                  => a.abs
-      case a: ComplexBigDecimal              => a.abs
+      case a: boxed.Double                      => abs(a)
+      case a: BigDecimal                        => a.abs
+      case a: ComplexBigInt                     => a.abs
+      case a: ComplexRational                   => a.abs
+      case a: ComplexDouble                     => a.abs
+      case a: ComplexBigDecimal                 => a.abs
     }
 
   def lnFunction(n: Any): Number =
     n match {
-      case a: boxed.Integer                  => log(a.doubleValue)
-      case a: BigInt                         => log(a.doubleValue)
+      case a: boxed.Integer                     => log(a.doubleValue)
+      case a: BigInt                            => log(a.doubleValue)
       case a: io.github.edadma.numbers.Rational => log(a.doubleValue)
-      case a: boxed.Double                   => log(a)
-      case a: BigDecimal                     => BigDecimalMath.ln(a)
-      case a: ComplexBigInt                  => a.ln
-      case a: ComplexRational                => a.ln
-      case a: ComplexDouble                  => a.ln
-      case a: ComplexBigDecimal              => a.ln
+      case a: boxed.Double                      => log(a)
+      case a: BigDecimal                        => BigDecimalMath.ln(a)
+      case a: ComplexBigInt                     => a.ln
+      case a: ComplexRational                   => a.ln
+      case a: ComplexDouble                     => a.ln
+      case a: ComplexBigDecimal                 => a.ln
     }
 
   def floorFunction(n: Any): Number =
     n match {
-      case a: boxed.Integer                  => a
-      case a: BigInt                         => maybeDemote(a)._2
+      case a: boxed.Integer                     => a
+      case a: BigInt                            => maybeDemote(a)._2
       case a: io.github.edadma.numbers.Rational => a.floor
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.FLOOR)
@@ -464,8 +516,8 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def ceilFunction(n: Any): Number =
     n match {
-      case a: boxed.Integer                  => a
-      case a: BigInt                         => maybeDemote(a)._2
+      case a: boxed.Integer                     => a
+      case a: BigInt                            => maybeDemote(a)._2
       case a: io.github.edadma.numbers.Rational => a.ceil
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.CEILING)
@@ -588,19 +640,20 @@ trait TypedNumber {
 }
 
 abstract class Type
-case object IntType extends Type
-case object LongType extends Type
-case object BigIntType extends Type
-case object RationalType extends Type
-case object DoubleType extends Type
-case object BigDecType extends Type
-case object ComplexIntType extends Type
-case object ComplexBigIntType extends Type
-case object ComplexRationalType extends Type
-case object ComplexDoubleType extends Type
-case object ComplexBigDecType extends Type
-case object QuaternionIntType extends Type
-case object QuaternionBigIntType extends Type
+case object IntType                extends Type
+case object LongType               extends Type
+case object BigIntType             extends Type
+case object SmallRationalType      extends Type
+case object RationalType           extends Type
+case object DoubleType             extends Type
+case object BigDecType             extends Type
+case object ComplexIntType         extends Type
+case object ComplexBigIntType      extends Type
+case object ComplexRationalType    extends Type
+case object ComplexDoubleType      extends Type
+case object ComplexBigDecType      extends Type
+case object QuaternionIntType      extends Type
+case object QuaternionBigIntType   extends Type
 case object QuaternionRationalType extends Type
-case object QuaternionDoubleType extends Type
-case object QuaternionBigDecType extends Type
+case object QuaternionDoubleType   extends Type
+case object QuaternionBigDecType   extends Type

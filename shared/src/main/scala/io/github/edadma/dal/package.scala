@@ -1,16 +1,16 @@
 package io.github.edadma
 
-import io.github.edadma.numbers.{ComplexBigDecimal, ComplexBigInt, ComplexDouble, ComplexInt, ComplexRational, Rational}
+import io.github.edadma.numbers.{ComplexBigDecimal, ComplexBigInt, ComplexDouble, ComplexInt, ComplexRational, Rational, SmallRational}
 
-import math.{sqrt => sqr, _}
-import java.{lang => boxed}
+import math.{sqrt as sqr, *}
+import java.lang as boxed
 import scala.annotation.tailrec
 
 package object dal {
   type Operator = (Number, Number) => (Type, AnyRef)
 
   val ZERObi: BigInt = BigInt(0)
-  val ONEbi: BigInt = BigInt(1)
+  val ONEbi: BigInt  = BigInt(1)
 
   def asinh(x: Double): Double = log(x + sqr(x * x + 1))
 
@@ -130,6 +130,7 @@ package object dal {
       case _: boxed.Integer     => IntType
       case _: boxed.Long        => LongType
       case _: BigInt            => BigIntType
+      case _: SmallRational     => SmallRationalType
       case _: Rational          => RationalType
       case _: boxed.Double      => DoubleType
       case _: BigDecimal        => BigDecType
