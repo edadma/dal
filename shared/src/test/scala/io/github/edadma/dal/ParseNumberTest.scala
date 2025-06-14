@@ -134,4 +134,18 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     val q = result.asInstanceOf[QuaternionDouble]
     q shouldBe QuaternionDouble(1, 2, 3, 4)
   }
+
+  it should "parse quaternions with negative components" in {
+    parseNumber("1-2i+3j-4k") shouldBe QuaternionDouble(1, -2, 3, -4)
+  }
+
+  it should "parse quaternions with missing components" in {
+    parseNumber("1+3j") shouldBe QuaternionDouble(1, 0, 3, 0)
+    parseNumber("4k") shouldBe QuaternionDouble(0, 0, 0, 4)
+  }
+
+  it should "parse pure quaternion units" in {
+    parseNumber("j") shouldBe QuaternionDouble(0, 0, 1, 0)
+    parseNumber("k") shouldBe QuaternionDouble(0, 0, 0, 1)
+  }
 }
