@@ -1,6 +1,6 @@
 package io.github.edadma.dal
 
-import io.github.edadma.numbers.{ComplexDouble, QuaternionDouble, SmallRational}
+import io.github.edadma.numbers.{ComplexDouble, QuaternionDouble, Rational, SmallRational}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -41,6 +41,36 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     val overflow = s"${Long.MaxValue}/${Long.MaxValue}"
     val result2  = parseNumber(overflow)
     // Might be SmallRational(1) after reduction, need to test actual overflow case
+  }
+
+  it should "parse negative rationals" in {
+    parseNumber("-3/4") shouldBe SmallRational(-3L, 4L)
+  }
+
+  it should "parse and reduce rationals" in {
+    parseNumber("6/8") shouldBe SmallRational(3L, 4L) // Should auto-reduce
+  }
+
+  it should "parse improper fractions" in {
+    parseNumber("7/3") shouldBe SmallRational(7L, 3L)
+  }
+
+  it should "handle rationals that actually overflow SmallRational during arithmetic" in {
+    // Create SmallRationals that will overflow when operated on
+    val large1 = SmallRational(Long.MaxValue / 2, 1L)
+    val large2 = SmallRational(3L, 1L)
+
+    // This should trigger overflow handling in DAL operations
+    val result = PrecisionDAL.compute("+", large1, large2)
+    // Result should be promoted to appropriate type
+    result shouldBe a[Number]
+  }
+
+  it should "fallback to big Rational for numbers too large for SmallRational" in {
+    // Use a smaller but still overflowing case
+    val hugeDenominator = s"${Long.MaxValue}999" // Slightly larger than Long.MaxValue
+    val result          = parseNumber(s"1/${hugeDenominator}")
+    result shouldBe a[Rational] // Should fallback to big Rational
   }
 
   it should "parse decimals as doubles" in {

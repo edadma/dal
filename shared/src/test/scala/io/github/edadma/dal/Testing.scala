@@ -30,11 +30,9 @@ def parseNumber(s: String): Number = {
         // Try SmallRational first for efficiency
         SmallRational(rational)
       } catch {
-        case _: ArithmeticException =>
+        case _: NumberFormatException =>
           // Fallback to big Rational on overflow
           Rational(rational)
-        case _: Exception =>
-          throw new IllegalArgumentException(s"Invalid rational: $s")
       }
 
     // Decimal numbers
