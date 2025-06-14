@@ -107,6 +107,27 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3, 4)
   }
 
+  it should "parse complex numbers with negative imaginary" in {
+    parseNumber("3-4i") shouldBe ComplexDouble(3, -4)
+  }
+
+  it should "parse pure imaginary numbers" in {
+    parseNumber("4i") shouldBe ComplexDouble(0, 4)
+    parseNumber("-4i") shouldBe ComplexDouble(0, -4)
+    parseNumber("i") shouldBe ComplexDouble(0, 1)
+    parseNumber("-i") shouldBe ComplexDouble(0, -1)
+  }
+
+  it should "parse complex with unit imaginary" in {
+    parseNumber("3+i") shouldBe ComplexDouble(3, 1)
+    parseNumber("3-i") shouldBe ComplexDouble(3, -1)
+  }
+
+  it should "parse rational complex numbers" in {
+    // This depends on ComplexRationalIsFractional working
+    parseNumber("1/2+1/3i") shouldBe a[ComplexRational]
+  }
+
   it should "parse quaternions" in {
     val result = parseNumber("1+2i+3j+4k")
     result shouldBe a[QuaternionDouble]
