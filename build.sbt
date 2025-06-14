@@ -13,7 +13,8 @@ ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(tru
 ThisBuild / resolvers ++= Seq(
   Resolver.mavenLocal,
 )
-ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
+//ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots") ++ Resolver.sonatypeOssRepos("releases")
 
 ThisBuild / sonatypeProfileName := "io.github.edadma"
 
@@ -58,7 +59,7 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       ),
     libraryDependencies += "org.scalatest"    %%% "scalatest" % "3.2.19" % "test",
     libraryDependencies += "com.lihaoyi"      %%% "pprint"    % "0.9.0"  % "test",
-    libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.4",
+    libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.5",
     publishMavenStyle                          := true,
     Test / publishArtifact                     := false,
   )

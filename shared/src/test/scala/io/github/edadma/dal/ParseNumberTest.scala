@@ -1,6 +1,6 @@
 package io.github.edadma.dal
 
-import io.github.edadma.numbers.{ComplexDouble, QuaternionDouble, Rational, SmallRational}
+import io.github.edadma.numbers.{ComplexDouble, ComplexRational, QuaternionDouble, Rational, SmallRational}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
