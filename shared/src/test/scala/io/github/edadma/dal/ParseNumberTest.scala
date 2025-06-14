@@ -79,6 +79,17 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     parseNumber("0.0") shouldBe 0.0
   }
 
+  it should "parse scientific notation" in {
+    parseNumber("1.5e10") shouldBe 1.5e10
+    parseNumber("2E-5") shouldBe 2e-5
+    parseNumber("-3.14e2") shouldBe -314.0
+  }
+
+  it should "parse decimals with leading/trailing decimal points" in {
+    parseNumber(".5") shouldBe 0.5
+    parseNumber("5.") shouldBe 5.0
+  }
+
   it should "handle whitespace" in {
     parseNumber("  42  ") shouldBe 42
     parseNumber("\t3/4\n") shouldBe SmallRational(3L, 4L)

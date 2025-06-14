@@ -36,7 +36,8 @@ def parseNumber(s: String): Number = {
       }
 
     // Decimal numbers
-    case decimal if decimal.contains('.') =>
+    case decimal
+        if decimal.contains('.') || decimal.toLowerCase.contains('e') =>
       try {
         decimal.toDouble
       } catch {
