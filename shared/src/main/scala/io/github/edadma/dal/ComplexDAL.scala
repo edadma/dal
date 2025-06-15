@@ -139,9 +139,9 @@ object ComplexDAL extends DAL {
     BigDecType -> ((l: Number, r: Number) => (BigDecType, BigDecimalMath.pow(toBigDecimal(l), toBigDecimal(r)))),
     ComplexBigIntType -> ((l: Number, r: Number) =>
       r match {
-        case p: boxed.Integer => (ComplexBigIntType, toComplexBigInt(l) ^ p)
-        case p: boxed.Long    => (ComplexBigIntType, toComplexBigInt(l) ^ BigInt(p))
-        case p: BigInt        => (ComplexBigIntType, toComplexBigInt(l) ^ p)
+        case p: boxed.Integer => maybeDemote(toComplexBigInt(l) ^ p)
+        case p: boxed.Long    => maybeDemote(toComplexBigInt(l) ^ BigInt(p))
+        case p: BigInt        => maybeDemote(toComplexBigInt(l) ^ p)
         case _                => (ComplexDoubleType, toComplexDouble(l) ^ toComplexDouble(r))
       }
     ),

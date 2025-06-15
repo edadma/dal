@@ -105,8 +105,8 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
 
   it should "handle complex division" in {
     val result = eval("4+2i / 2+0i", ComplexDAL)
-    result shouldBe a[ComplexDouble]
-    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(2, 1)
+    result shouldBe a[ComplexBigInt]
+    result.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(2), BigInt(1))
   }
 
   it should "handle complex rational arithmetic" in {
@@ -178,19 +178,17 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
   }
 
   it should "handle complex number powers with integer exponents" in {
-    // i^2 = -1
+    // i^2 = -1 (integer result gets demoted from ComplexBigInt to BigInt)
     val result1 = eval("0+1i ^ 2", ComplexDAL)
-    result1 shouldBe a[ComplexDouble]
-    val complex1 = result1.asInstanceOf[ComplexDouble]
-    complex1.re shouldBe -1.0 +- 0.001
-    complex1.im shouldBe 0.0 +- 0.001
+    result1 shouldBe a[java.lang.Integer]
+    result1.asInstanceOf[Int] shouldBe -1
 
     // (1+i)^2 = 1 + 2i + i^2 = 1 + 2i - 1 = 2i
     val result2 = eval("1+1i ^ 2", ComplexDAL)
-    result2 shouldBe a[ComplexDouble]
-    val complex2 = result2.asInstanceOf[ComplexDouble]
-    complex2.re shouldBe 0.0 +- 0.001
-    complex2.im shouldBe 2.0 +- 0.001
+    result2 shouldBe a[ComplexBigInt]
+    val complex2 = result2.asInstanceOf[ComplexBigInt]
+    complex2.re shouldBe BigInt(0)
+    complex2.im shouldBe BigInt(2)
   }
 
   it should "handle complex powers with complex exponents" in {
@@ -265,18 +263,40 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
   }
 
   "ComplexDAL mixed operations" should "handle real + complex" in {
+    // Integer + ComplexBigInt -> ComplexBigInt
     val result1 = eval("3 + 2+4i", ComplexDAL)
-    result1 shouldBe a[ComplexDouble]
-    result1.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(5, 4)
+    result1 shouldBe a[ComplexBigInt] // Changed from ComplexDouble
+    result1.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(5), BigInt(4))
 
     val result2 = eval("2+4i + 3", ComplexDAL)
-    result2 shouldBe a[ComplexDouble]
-    result2.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(5, 4)
+    result2 shouldBe a[ComplexBigInt] // Changed from ComplexDouble
+    result2.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(5), BigInt(4))
   }
 
   it should "handle rational + complex" in {
+    // SmallRational + ComplexBigInt -> ComplexRational
     val result = eval("1/2 + 1+1i", ComplexDAL)
-    result shouldBe a[ComplexDouble] // Promotes to ComplexDouble
+    result shouldBe a[ComplexRational] // Changed from ComplexDouble
+    val complex = result.asInstanceOf[ComplexRational]
+    complex.re shouldBe Rational(3, 2) // 1/2 + 1 = 3/2
+    complex.im shouldBe Rational(1) // 0 + 1 = 1
+  }
+
+  it should "handle decimal real + complex as ComplexDouble" in {
+    // Double + ComplexDouble -> ComplexDouble
+    val result1 = eval("3.0 + 2.0+4.0i", ComplexDAL)
+    result1 shouldBe a[ComplexDouble]
+    result1.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(5.0, 4.0)
+
+    val result2 = eval("2.5+4.7i + 1.5", ComplexDAL)
+    result2 shouldBe a[ComplexDouble]
+    result2.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(4.0, 4.7)
+  }
+
+  it should "handle decimal rational + complex as ComplexDouble" in {
+    // This promotes to ComplexDouble due to decimal coefficients
+    val result = eval("0.5 + 1.0+1.0i", ComplexDAL)
+    result shouldBe a[ComplexDouble]
     val complex = result.asInstanceOf[ComplexDouble]
     complex.re shouldBe 1.5 +- 0.001
     complex.im shouldBe 1.0 +- 0.001
