@@ -159,6 +159,12 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
         val quo = toBigDecimal(n) / toBigDecimal(d)
 
         new ComplexBigDecimal(if (quo.precision > bdmath.mc.getPrecision) quo.round(bdmath.mc) else quo, 0)
+      case cr: ComplexRational => // ADD THIS CASE
+        val reQuo    = toBigDecimal(cr.re.numerator) / toBigDecimal(cr.re.denominator)
+        val imQuo    = toBigDecimal(cr.im.numerator) / toBigDecimal(cr.im.denominator)
+        val reResult = if (reQuo.precision > bdmath.mc.getPrecision) reQuo.round(bdmath.mc) else reQuo
+        val imResult = if (imQuo.precision > bdmath.mc.getPrecision) imQuo.round(bdmath.mc) else imQuo
+        new ComplexBigDecimal(reResult, imResult)
       case bi: BigInt =>
         val len = digits(bi)
 
