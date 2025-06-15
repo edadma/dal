@@ -1,5 +1,7 @@
 package io.github.edadma.dal
 
+import io.github.edadma.numbers.ComplexBigInt
+
 def parseNumber(s: String): Number = {
   import io.github.edadma.numbers._
 
@@ -13,14 +15,19 @@ def parseNumber(s: String): Number = {
 
     // Complex numbers like "3+4i", "2-5i", "3+i", "-2i"
     case complex if complex.endsWith("i") && !complex.endsWith("ki") =>
-      // Try ComplexDouble first for decimal complex numbers
-      ComplexDoubleIsFractional.complexDoubleIsFractional.parseString(complex) match {
+      // First try ComplexRational for exact rational coefficients like "1/2+1/3i"
+      ComplexRationalIsFractional.complexRationalIsFractional.parseString(complex) match {
         case Some(c) => c
         case None    =>
-          // Try ComplexRational for rational complex numbers like "1/2+1/3i"
-          ComplexRationalIsFractional.complexRationalIsFractional.parseString(complex) match {
+          // Second try ComplexBigInt for exact integer coefficients like "3+4i"
+          parseAsComplexBigInt(complex) match {
             case Some(c) => c
-            case None    => throw new IllegalArgumentException(s"Invalid complex number: $s")
+            case None    =>
+              // Fallback to ComplexDouble for decimal coefficients like "3.14+2.71i"
+              ComplexDoubleIsFractional.complexDoubleIsFractional.parseString(complex) match {
+                case Some(c) => c
+                case None    => throw new IllegalArgumentException(s"Invalid complex number: $s")
+              }
           }
       }
 
@@ -36,15 +43,13 @@ def parseNumber(s: String): Number = {
       }
 
     // Decimal numbers
-    case decimal
-        if decimal.contains('.') || decimal.toLowerCase.contains('e') =>
+    case decimal if decimal.contains('.') || decimal.toLowerCase.contains('e') =>
       try {
         decimal.toDouble
       } catch {
         case _: NumberFormatException => throw new IllegalArgumentException(s"Invalid decimal: $s")
       }
 
-    // Integer numbers (promote to BigInt if needed)
     // Integer numbers (promote through the type hierarchy)
     case integer =>
       try {
@@ -56,6 +61,42 @@ def parseNumber(s: String): Number = {
       } catch {
         case _: NumberFormatException => throw new IllegalArgumentException(s"Invalid integer: $s")
       }
+  }
+}
+
+// Helper function to parse integer complex numbers as ComplexBigInt
+def parseAsComplexBigInt(s: String): Option[ComplexBigInt] = {
+  import io.github.edadma.numbers.ComplexBigInt
+
+  // Remove whitespace
+  val trimmed = s.trim
+
+  try {
+    // Handle pure imaginary cases first: "4i", "-4i", "i", "-i"
+    if (trimmed.matches("""^[+-]?\d*i$""")) {
+      val coefficient = trimmed.dropRight(1) // Remove 'i'
+      val imagPart = coefficient match {
+        case "" | "+" => BigInt(1)
+        case "-"      => BigInt(-1)
+        case c        => BigInt(c)
+      }
+      return Some(ComplexBigInt(BigInt(0), imagPart))
+    }
+
+    // Handle full complex numbers: "3+4i", "5-7i", "2+0i", etc.
+    // Pattern: optional_minus + digits + (+ or -) + optional_digits + i
+    val fullComplexPattern = """^(-?\d+)([+-])(\d*)i$""".r
+
+    trimmed match {
+      case fullComplexPattern(re, sign, im) =>
+        val realPart  = BigInt(re)
+        val imagCoeff = if (im.isEmpty) BigInt(1) else BigInt(im)
+        val imagPart  = if (sign == "-") -imagCoeff else imagCoeff
+        Some(ComplexBigInt(realPart, imagPart))
+      case _ => None
+    }
+  } catch {
+    case _: NumberFormatException => None
   }
 }
 

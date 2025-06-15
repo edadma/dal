@@ -1,6 +1,13 @@
 package io.github.edadma.dal
 
-import io.github.edadma.numbers.{ComplexDouble, ComplexRational, QuaternionDouble, Rational, SmallRational}
+import io.github.edadma.numbers.{
+  ComplexDouble,
+  ComplexRational,
+  ComplexBigInt,
+  QuaternionDouble,
+  Rational,
+  SmallRational,
+}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -101,34 +108,109 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
     an[IllegalArgumentException] should be thrownBy parseNumber("")
   }
 
-  it should "parse complex numbers" in {
+  // FIXED: Updated tests to expect correct types based on exactness priority
+  "parseNumber complex parsing priority" should "parse integer complex numbers as ComplexBigInt (exact)" in {
     val result = parseNumber("3+4i")
+    result shouldBe a[ComplexBigInt]
+    result.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(3), BigInt(4))
+  }
+
+  it should "parse integer complex with negative imaginary as ComplexBigInt" in {
+    val result = parseNumber("3-4i")
+    result shouldBe a[ComplexBigInt]
+    result.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(3), BigInt(-4))
+  }
+
+  it should "parse integer complex with unit imaginary as ComplexBigInt" in {
+    val result = parseNumber("3+i")
+    result shouldBe a[ComplexBigInt]
+    result.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(3), BigInt(1))
+
+    val result2 = parseNumber("3-i")
+    result2 shouldBe a[ComplexBigInt]
+    result2.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(3), BigInt(-1))
+  }
+
+  it should "parse pure integer imaginary numbers as ComplexBigInt" in {
+    parseNumber("4i") shouldBe ComplexBigInt(BigInt(0), BigInt(4))
+    parseNumber("-4i") shouldBe ComplexBigInt(BigInt(0), BigInt(-4))
+    parseNumber("i") shouldBe ComplexBigInt(BigInt(0), BigInt(1))
+    parseNumber("-i") shouldBe ComplexBigInt(BigInt(0), BigInt(-1))
+  }
+
+  // NEW: Tests for decimal complex numbers
+  it should "parse decimal complex numbers as ComplexDouble" in {
+    val result = parseNumber("3.5+4.2i")
     result shouldBe a[ComplexDouble]
-    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3, 4)
+    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3.5, 4.2)
   }
 
-  it should "parse complex numbers with negative imaginary" in {
-    parseNumber("3-4i") shouldBe ComplexDouble(3, -4)
+  it should "parse mixed integer-decimal complex as ComplexDouble" in {
+    val result1 = parseNumber("3+4.5i")
+    result1 shouldBe a[ComplexDouble]
+    result1.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3.0, 4.5)
+
+    val result2 = parseNumber("3.5+4i")
+    result2 shouldBe a[ComplexDouble]
+    result2.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3.5, 4.0)
   }
 
-  it should "parse pure imaginary numbers" in {
-    parseNumber("4i") shouldBe ComplexDouble(0, 4)
-    parseNumber("-4i") shouldBe ComplexDouble(0, -4)
-    parseNumber("i") shouldBe ComplexDouble(0, 1)
-    parseNumber("-i") shouldBe ComplexDouble(0, -1)
+  it should "parse decimal complex with negative imaginary as ComplexDouble" in {
+    parseNumber("2.5-3.7i") shouldBe ComplexDouble(2.5, -3.7)
   }
 
-  it should "parse complex with unit imaginary" in {
-    parseNumber("3+i") shouldBe ComplexDouble(3, 1)
-    parseNumber("3-i") shouldBe ComplexDouble(3, -1)
+  it should "parse pure decimal imaginary numbers as ComplexDouble" in {
+    parseNumber("4.5i") shouldBe ComplexDouble(0, 4.5)
+    parseNumber("-2.3i") shouldBe ComplexDouble(0, -2.3)
   }
 
-  it should "parse rational complex numbers" in {
-    // This depends on ComplexRationalIsFractional working
-    parseNumber("1/2+1/3i") shouldBe a[ComplexRational]
+  it should "parse scientific notation complex as ComplexDouble" in {
+    parseNumber("1e2+3e-1i") shouldBe ComplexDouble(100.0, 0.3)
+    parseNumber("2.5E+1-1.5E-2i") shouldBe ComplexDouble(25.0, -0.015)
   }
 
-  it should "parse quaternions" in {
+  // NEW: Tests for rational complex numbers (highest priority for exactness)
+  it should "parse rational complex numbers as ComplexRational" in {
+    val result = parseNumber("1/2+1/3i")
+    result shouldBe a[ComplexRational]
+    val cr = result.asInstanceOf[ComplexRational]
+    cr.re shouldBe Rational(1, 2)
+    cr.im shouldBe Rational(1, 3)
+  }
+
+  it should "parse mixed rational complex as ComplexRational" in {
+    val result = parseNumber("3/4-2/5i")
+    result shouldBe a[ComplexRational]
+    val cr = result.asInstanceOf[ComplexRational]
+    cr.re shouldBe Rational(3, 4)
+    cr.im shouldBe Rational(-2, 5)
+  }
+
+  it should "parse pure rational imaginary as ComplexRational" in {
+    val result = parseNumber("2/3i")
+    result shouldBe a[ComplexRational]
+    val cr = result.asInstanceOf[ComplexRational]
+    cr.re shouldBe Rational(0)
+    cr.im shouldBe Rational(2, 3)
+  }
+
+  // Tests for special cases in complex parsing
+  it should "handle zero complex numbers correctly" in {
+    parseNumber("0+0i") shouldBe ComplexBigInt(BigInt(0), BigInt(0))
+    parseNumber("0.0+0.0i") shouldBe ComplexDouble(0.0, 0.0)
+  }
+
+  it should "handle complex numbers with zero real part" in {
+    parseNumber("0+5i") shouldBe ComplexBigInt(BigInt(0), BigInt(5))
+    parseNumber("0.0+5.5i") shouldBe ComplexDouble(0.0, 5.5)
+  }
+
+  it should "handle complex numbers with zero imaginary part" in {
+    parseNumber("7+0i") shouldBe ComplexBigInt(BigInt(7), BigInt(0))
+    parseNumber("7.5+0.0i") shouldBe ComplexDouble(7.5, 0.0)
+  }
+
+  "parseNumber quaternion parsing" should "parse quaternions" in {
     val result = parseNumber("1+2i+3j+4k")
     result shouldBe a[QuaternionDouble]
     val q = result.asInstanceOf[QuaternionDouble]
@@ -147,5 +229,30 @@ class ParseNumberTest extends AnyFlatSpec with Matchers {
   it should "parse pure quaternion units" in {
     parseNumber("j") shouldBe QuaternionDouble(0, 0, 1, 0)
     parseNumber("k") shouldBe QuaternionDouble(0, 0, 0, 1)
+  }
+
+  // Test the parsing priority explicitly
+  "parseNumber type priority" should "prioritize exact types over approximate types" in {
+    // Rational > BigInt > Double for exactness
+    parseNumber("1/2") shouldBe a[SmallRational]     // Most exact for fractions
+    parseNumber("42") shouldBe a[java.lang.Integer]  // Exact for integers
+    parseNumber("3.14") shouldBe a[java.lang.Double] // Approximate for decimals
+
+    // ComplexRational > ComplexBigInt > ComplexDouble for exactness
+    parseNumber("1/2+1/3i") shouldBe a[ComplexRational] // Most exact
+    parseNumber("3+4i") shouldBe a[ComplexBigInt]       // Exact for integer coefficients
+    parseNumber("3.14+2.71i") shouldBe a[ComplexDouble] // Approximate for decimal coefficients
+  }
+
+  it should "handle edge cases in exact vs approximate parsing" in {
+    // These should be exact
+    parseNumber("0+0i") shouldBe a[ComplexBigInt]
+    parseNumber("1+1i") shouldBe a[ComplexBigInt]
+    parseNumber("-5-3i") shouldBe a[ComplexBigInt]
+
+    // These should be approximate
+    parseNumber("0.0+0.0i") shouldBe a[ComplexDouble]
+    parseNumber("1.0+1.0i") shouldBe a[ComplexDouble]
+    parseNumber("1+1.0i") shouldBe a[ComplexDouble] // Mixed → approximate
   }
 }
