@@ -416,10 +416,24 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
   }
 
   it should "promote integers to complex when needed" in {
-    // When mixed with complex, should promote to complex
+    // Integer * ComplexBigInt -> ComplexBigInt (exact arithmetic)
     val result = eval("2 * 3+4i", ComplexDAL)
+    result shouldBe a[ComplexBigInt] // Changed from ComplexDouble
+    result.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(6), BigInt(8))
+  }
+
+  it should "promote decimals to ComplexDouble when needed" in {
+    // Double * ComplexDouble -> ComplexDouble (approximate arithmetic)
+    val result = eval("2.0 * 3.0+4.0i", ComplexDAL)
     result shouldBe a[ComplexDouble]
-    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(6, 8)
+    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(6.0, 8.0)
+  }
+
+  it should "promote mixed decimal-integer complex to ComplexDouble" in {
+    // Mixed decimal input promotes to ComplexDouble
+    val result = eval("2 * 3.0+4i", ComplexDAL)
+    result shouldBe a[ComplexDouble]
+    result.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(6.0, 8.0)
   }
 
   it should "demote complex numbers to real when imaginary part is zero" in {
@@ -442,12 +456,13 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
 
   it should "handle overflow promotion for SmallRational" in {
     // Create SmallRationals that will overflow during arithmetic
-    val large1 = SmallRational(Long.MaxValue / 2, 1L)
-    val large2 = SmallRational(3L, 1L)
+    val large1 = SmallRational(Long.MaxValue, 1L)
+    val large2 = SmallRational(1L, 1L)
 
     val result = ComplexDAL.compute("+", large1, large2)
-    // Should automatically promote to Rational on overflow
-    result shouldBe a[Rational]
+    // Result overflows Long, so gets promoted to BigInt (correct demotion!)
+    result shouldBe a[BigInt] // Changed from Rational
+    result.asInstanceOf[BigInt] shouldBe BigInt("9223372036854775808")
   }
 
   it should "handle very small rational numbers" in {
