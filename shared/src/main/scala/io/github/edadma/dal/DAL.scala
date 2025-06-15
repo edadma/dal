@@ -100,6 +100,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     a match {
       case bi: BigInt          => ComplexRational(toRational(bi))
       case i: boxed.Integer    => ComplexRational(toRational(i))
+      case sr: SmallRational   => ComplexRational(sr.toRational)
       case r: Rational         => ComplexRational(r)
       case cbi: ComplexBigInt  => ComplexRational(toRational(cbi.re), toRational(cbi.im))
       case cr: ComplexRational => cr
@@ -122,6 +123,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case cd: ComplexDouble  => cd
       case i: boxed.Integer   => ComplexDouble(i.doubleValue)
       case d: boxed.Double    => ComplexDouble(d)
+      case sr: SmallRational  => ComplexDouble(sr.doubleValue)
       case r: Rational        => ComplexDouble(r.doubleValue)
       case bi: BigInt         => ComplexDouble(bi.doubleValue)
       case cbi: ComplexBigInt => ComplexDouble(cbi.re.doubleValue, cbi.im.doubleValue)
@@ -148,6 +150,10 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case bd: BigDecimal        => new ComplexBigDecimal(bd, 0)
       case i: boxed.Integer      => new ComplexBigDecimal(i.asInstanceOf[Int], 0)
       case d: boxed.Double       => new ComplexBigDecimal(d.asInstanceOf[Double], 0)
+      case sr: SmallRational =>
+        val rational = sr.toRational
+        val quo      = toBigDecimal(rational.numerator) / toBigDecimal(rational.denominator)
+        new ComplexBigDecimal(if (quo.precision > bdmath.mc.getPrecision) quo.round(bdmath.mc) else quo, 0)
       case Rational(n, d) =>
         val quo = toBigDecimal(n) / toBigDecimal(d)
 
