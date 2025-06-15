@@ -63,21 +63,44 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
   }
 
   "ComplexDAL complex arithmetic" should "handle basic complex number operations" in {
-    // Complex + Complex
+    // Complex + Complex (integer coefficients parse as ComplexBigInt)
     val result1 = eval("3+4i + 1+2i", ComplexDAL)
-    result1 shouldBe a[ComplexDouble]
-    result1.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(4, 6)
+    result1 shouldBe a[ComplexBigInt]
+    result1.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(4), BigInt(6))
 
-    // Complex - Complex
+    // Complex - Complex (integer coefficients parse as ComplexBigInt)
     val result2 = eval("5+3i - 2+1i", ComplexDAL)
-    result2 shouldBe a[ComplexDouble]
-    result2.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(3, 2)
+    result2 shouldBe a[ComplexBigInt]
+    result2.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(3), BigInt(2))
 
-    // Complex * Complex
+    // Complex * Complex (integer coefficients parse as ComplexBigInt)
     val result3 = eval("2+3i * 1+1i", ComplexDAL)
-    result3 shouldBe a[ComplexDouble]
+    result3 shouldBe a[ComplexBigInt]
     // (2+3i)(1+1i) = 2 + 2i + 3i + 3i² = 2 + 5i - 3 = -1 + 5i
-    result3.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(-1, 5)
+    result3.asInstanceOf[ComplexBigInt] shouldBe ComplexBigInt(BigInt(-1), BigInt(5))
+  }
+
+  it should "handle decimal complex arithmetic as ComplexDouble" in {
+    // Decimal complex numbers should parse as ComplexDouble
+    val result1 = eval("3.0+4.0i + 1.0+2.0i", ComplexDAL)
+    result1 shouldBe a[ComplexDouble]
+    result1.asInstanceOf[ComplexDouble] shouldBe ComplexDouble(4.0, 6.0)
+
+    val result2 = eval("2.5+3.7i * 1.2+0.8i", ComplexDAL)
+    result2 shouldBe a[ComplexDouble]
+    // (2.5+3.7i)(1.2+0.8i) = 3.0 + 2.0i + 4.44i + 2.96i² = 3.0 + 6.44i - 2.96 = 0.04 + 6.44i
+    val cd = result2.asInstanceOf[ComplexDouble]
+    cd.re shouldBe 0.04 +- 0.001
+    cd.im shouldBe 6.44 +- 0.001
+  }
+
+  it should "handle rational complex arithmetic as ComplexRational" in {
+    // Rational complex numbers should parse as ComplexRational
+    val result1 = eval("1/2+1/3i + 1/4+1/6i", ComplexDAL)
+    result1 shouldBe a[ComplexRational]
+    val cr = result1.asInstanceOf[ComplexRational]
+    cr.re shouldBe Rational(3, 4) // 1/2 + 1/4 = 2/4 + 1/4 = 3/4
+    cr.im shouldBe Rational(1, 2) // 1/3 + 1/6 = 2/6 + 1/6 = 3/6 = 1/2
   }
 
   it should "handle complex division" in {

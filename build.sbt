@@ -59,7 +59,7 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       ),
     libraryDependencies += "org.scalatest"    %%% "scalatest" % "3.2.19" % "test",
     libraryDependencies += "com.lihaoyi"      %%% "pprint"    % "0.9.0"  % "test",
-    libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.7",
+    libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.8",
     publishMavenStyle                          := true,
     Test / publishArtifact                     := false,
   )
