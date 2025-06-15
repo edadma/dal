@@ -59,41 +59,17 @@ def parseNumber(s: String): Number = {
   }
 }
 
-def eval(expression: String): Any = {
+def eval(expression: String, dal: DAL): Any = {
   val toks = expression.split(' ')
-
-  if (toks.length != 3) {
-    throw new IllegalArgumentException(s"Expected 3 tokens, got ${toks.length}: ${toks.mkString("[", ", ", "]")}")
-  }
+  require(toks.length == 3, s"Expected 3 tokens, got ${toks.length}")
 
   val left  = parseNumber(toks(0))
   val op    = toks(1)
   val right = parseNumber(toks(2))
 
   op match {
-    // Arithmetic operations
-    case "+" | "-" | "*" | "/" | "%" | "^" =>
-      PrecisionDAL.compute(Symbol(op), left, right)
-
-    // Relational operations
-    case "=" | "!=" | "<" | ">" | "<=" | ">=" | "div" =>
-      PrecisionDAL.relate(Symbol(op), left, right)
-
-    case _ =>
-      throw new IllegalArgumentException(s"Unknown operator: $op")
-  }
-}
-
-def evalArithmetic(expression: String): Number = {
-  eval(expression) match {
-    case n: Number => n
-    case other     => throw new IllegalArgumentException(s"Expected Number, got: $other")
-  }
-}
-
-def evalRelation(expression: String): Boolean = {
-  eval(expression) match {
-    case b: Boolean => b
-    case other      => throw new IllegalArgumentException(s"Expected Boolean, got: $other")
+    case "+" | "-" | "*" | "/" | "%" | "^" | "//"     => dal.compute(Symbol(op), left, right)
+    case "=" | "!=" | "<" | ">" | "<=" | ">=" | "div" => dal.relate(Symbol(op), left, right)
+    case _                                            => throw new IllegalArgumentException(s"Unknown operator: $op")
   }
 }
