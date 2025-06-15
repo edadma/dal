@@ -120,14 +120,15 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def toComplexDouble(a: Number): ComplexDouble =
     a match {
-      case cd: ComplexDouble  => cd
-      case i: boxed.Integer   => ComplexDouble(i.doubleValue)
-      case d: boxed.Double    => ComplexDouble(d)
-      case sr: SmallRational  => ComplexDouble(sr.doubleValue)
-      case r: Rational        => ComplexDouble(r.doubleValue)
-      case bi: BigInt         => ComplexDouble(bi.doubleValue)
-      case cbi: ComplexBigInt => ComplexDouble(cbi.re.doubleValue, cbi.im.doubleValue)
-      case _                  => sys.error("can't convert from " + a)
+      case cd: ComplexDouble   => cd
+      case i: boxed.Integer    => ComplexDouble(i.doubleValue)
+      case d: boxed.Double     => ComplexDouble(d)
+      case sr: SmallRational   => ComplexDouble(sr.doubleValue)
+      case r: Rational         => ComplexDouble(r.doubleValue)
+      case bi: BigInt          => ComplexDouble(bi.doubleValue)
+      case cbi: ComplexBigInt  => ComplexDouble(cbi.re.doubleValue, cbi.im.doubleValue)
+      case cr: ComplexRational => ComplexDouble(cr.re.doubleValue, cr.im.doubleValue)
+      case _                   => sys.error("can't convert from " + a)
     }
 
   def toQuaternionDouble(a: Number): QuaternionDouble =

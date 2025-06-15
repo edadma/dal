@@ -13,6 +13,7 @@ object ComplexDAL extends DAL {
   special(RationalType, ComplexBigIntType, ComplexRationalType)
   special(SmallRationalType, ComplexBigIntType, ComplexRationalType)
   special(DoubleType, ComplexRationalType, ComplexDoubleType)
+  special(DoubleType, ComplexRationalType, ComplexDoubleType)
   special(BigDecType, ComplexRationalType, ComplexBigDecType)
   special(BigDecType, ComplexDoubleType, ComplexBigDecType)
 
