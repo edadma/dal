@@ -68,8 +68,16 @@ def eval(expression: String, dal: DAL): Any = {
   val right = parseNumber(toks(2))
 
   op match {
-    case "+" | "-" | "*" | "/" | "%" | "^" | "//"     => dal.compute(Symbol(op), left, right)
-    case "=" | "!=" | "<" | ">" | "<=" | ">=" | "div" => dal.relate(Symbol(op), left, right)
-    case _                                            => throw new IllegalArgumentException(s"Unknown operator: $op")
+    // Arithmetic operations
+    case "+" | "-" | "*" | "/" | "%" | "^" | "//" | "mod" | "\\" | "and" | "or" | "xor" =>
+      dal.compute(Symbol(op), left, right)
+    // Comparison operations
+    case "=" | "!=" | "<" | ">" | "<=" | ">=" | "div" =>
+      dal.relate(Symbol(op), left, right)
+    // Three-way comparison returns a number
+    case "compare" =>
+      dal.compute(Symbol(op), left, right)
+    case _ =>
+      throw new IllegalArgumentException(s"Unknown operator: $op")
   }
 }
