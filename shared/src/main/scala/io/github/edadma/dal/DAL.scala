@@ -634,7 +634,7 @@ case class DALNumber(typ: Type, value: Number) extends TypedNumber
 
 object DALNumber {
 
-  def apply(n: (Type, Number)): TypedNumber = DALNumber(n._1, n._2)
+  def apply(n: (Type, Number)): DALNumber = DALNumber(n._1, n._2)
 
   def apply(n: Int) = new DALNumber(IntType, n)
 
