@@ -1,20 +1,19 @@
-ThisBuild / licenses += "ISC"      -> url("https://opensource.org/licenses/ISC")
+import xerial.sbt.Sonatype.sonatypeCentralHost
+
+ThisBuild / licenses               := Seq("ISC" -> url("https://opensource.org/licenses/ISC"))
 ThisBuild / versionScheme          := Some("semver-spec")
 ThisBuild / evictionErrorLevel     := Level.Warn
-ThisBuild / scalaVersion           := "3.7.0"
+ThisBuild / scalaVersion           := "3.7.4"
 ThisBuild / organization           := "io.github.edadma"
 ThisBuild / organizationName       := "edadma"
 ThisBuild / organizationHomepage   := Some(url("https://github.com/edadma"))
-ThisBuild / version                := "0.0.3"
-ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
-ThisBuild / sonatypeRepository     := "https://s01.oss.sonatype.org/service/local"
+ThisBuild / version                := "0.0.4"
+ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
 ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true).withChecksums(Vector.empty)
-ThisBuild / resolvers ++= Seq(
-  Resolver.mavenLocal,
-)
-//ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
-ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots") ++ Resolver.sonatypeOssRepos("releases")
+ThisBuild / resolvers += Resolver.mavenLocal
+ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
+ThisBuild / resolvers += Resolver.sonatypeCentralRepo("releases")
 
 ThisBuild / sonatypeProfileName := "io.github.edadma"
 
@@ -33,15 +32,10 @@ ThisBuild / developers := List(
   ),
 )
 
-ThisBuild / homepage := Some(url("https://github.com/edadma/dal"))
+ThisBuild / homepage    := Some(url("https://github.com/edadma/dal"))
+ThisBuild / description := "Dynamic Arithmetic Library for Scala"
 
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishTo := {
-  val nexus = "https://s01.oss.sonatype.org/"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-}
-ThisBuild / publishMavenStyle := true
+ThisBuild / publishTo := sonatypePublishToBundle.value
 
 lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
@@ -60,8 +54,8 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     libraryDependencies += "org.scalatest"    %%% "scalatest" % "3.2.19" % "test",
     libraryDependencies += "com.lihaoyi"      %%% "pprint"    % "0.9.0"  % "test",
     libraryDependencies += "io.github.edadma" %%% "numbers"   % "0.0.8",
-    publishMavenStyle                          := true,
-    Test / publishArtifact                     := false,
+    publishMavenStyle      := true,
+    Test / publishArtifact := false,
   )
   .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
@@ -71,8 +65,8 @@ lazy val dal = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   )
   .jsSettings(
     jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
-    //    Test / scalaJSUseMainModuleInitializer := true,
-    //    Test / scalaJSUseTestModuleInitializer := false,
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+    scalaJSLinkerConfig ~= { _.withSourceMap(false) },
     Test / scalaJSUseMainModuleInitializer := false,
     Test / scalaJSUseTestModuleInitializer := true,
     scalaJSUseMainModuleInitializer        := true,

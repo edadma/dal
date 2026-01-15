@@ -551,6 +551,39 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case a: ComplexBigDecimal => a.ceil
     }
 
+  def roundFunction(n: Any): Number =
+    n match {
+      case a: boxed.Integer => a
+      case a: BigInt        => maybeDemote(a)._2
+      case a: io.github.edadma.numbers.Rational =>
+        val r = BigDecimal(a.numerator) / BigDecimal(a.denominator)
+        val rounded = r.setScale(0, BigDecimal.RoundingMode.HALF_UP)
+        if (rounded.isValidInt) rounded.toIntExact
+        else rounded.toBigInt
+      case a: boxed.Double =>
+        val r = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.HALF_UP)
+        if (r.isValidInt) r.toIntExact
+        else r.toBigInt
+      case a: BigDecimal =>
+        a.setScale(0, BigDecimal.RoundingMode.HALF_UP)
+      case a: ComplexBigInt => a
+      case a: ComplexRational =>
+        val reRounded = BigDecimal(a.re.numerator) / BigDecimal(a.re.denominator)
+        val imRounded = BigDecimal(a.im.numerator) / BigDecimal(a.im.denominator)
+        val re = reRounded.setScale(0, BigDecimal.RoundingMode.HALF_UP).toBigInt
+        val im = imRounded.setScale(0, BigDecimal.RoundingMode.HALF_UP).toBigInt
+        maybeDemote(ComplexBigInt(re, im))._2
+      case a: ComplexDouble =>
+        val re = BigDecimal(a.re).setScale(0, BigDecimal.RoundingMode.HALF_UP).toBigInt
+        val im = BigDecimal(a.im).setScale(0, BigDecimal.RoundingMode.HALF_UP).toBigInt
+        maybeDemote(ComplexBigInt(re, im))._2
+      case a: ComplexBigDecimal =>
+        ComplexBigDecimal(
+          a.re.setScale(0, BigDecimal.RoundingMode.HALF_UP),
+          a.im.setScale(0, BigDecimal.RoundingMode.HALF_UP),
+        )
+    }
+
   def cosFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>

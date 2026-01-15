@@ -237,11 +237,11 @@ class ComplexDALTest extends AnyFlatSpec with Matchers {
 
   it should "promote Double + ComplexRational to ComplexDouble" in {
     val complexRational = ComplexRational(Rational(1, 2), Rational(1, 3))
-    val result          = ComplexDAL.compute("*", 2.0, complexRational)
+    val result          = ComplexDAL.compute("*", 2.5, complexRational)
     result shouldBe a[ComplexDouble]
     val cd = result.asInstanceOf[ComplexDouble]
-    cd.re shouldBe 1.0 +- 0.001         // 2 * (1/2) = 1
-    cd.im shouldBe (2.0 / 3.0) +- 0.001 // 2 * (1/3) = 2/3
+    cd.re shouldBe 1.25 +- 0.001        // 2.5 * (1/2) = 1.25
+    cd.im shouldBe (2.5 / 3.0) +- 0.001 // 2.5 * (1/3) = 5/6
   }
 
   it should "promote BigDecimal + ComplexRational to ComplexBigDecimal" in {
