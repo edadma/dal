@@ -139,7 +139,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case d: boxed.Double     => QuaternionDouble(d)
       case r: Rational         => QuaternionDouble(r.doubleValue)
       case bi: BigInt          => QuaternionDouble(bi.doubleValue)
-      case cbi: ComplexBigInt  => QuaternionDouble(cbi.re.doubleValue, cbi.re.doubleValue, 0, 0)
+      case cbi: ComplexBigInt  => QuaternionDouble(cbi.re.doubleValue, cbi.im.doubleValue, 0, 0)
       case q: QuaternionBigInt => QuaternionDouble(q.a.doubleValue, q.b.doubleValue, q.c.doubleValue, q.d.doubleValue)
       case _                   => sys.error("can't convert from " + a)
     }

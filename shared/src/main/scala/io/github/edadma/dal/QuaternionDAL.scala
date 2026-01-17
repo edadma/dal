@@ -235,10 +235,10 @@ object QuaternionDAL extends DAL {
     ComplexRationalType    -> ((l: Number, r: Number) => boolean(toComplexDouble(l) != toComplexDouble(r))),
     ComplexDoubleType      -> ((l: Number, r: Number) => boolean(toComplexDouble(l) != toComplexDouble(r))),
     ComplexBigDecType      -> ((l: Number, r: Number) => boolean(toComplexBigDecimal(l) != toComplexBigDecimal(r))),
-    QuaternionBigIntType   -> ((l: Number, r: Number) => boolean(toQuaternionBigInt(l) == toQuaternionBigInt(r))),
-    QuaternionRationalType -> ((l: Number, r: Number) => boolean(toQuaternionRational(l) == toQuaternionRational(r))),
-    QuaternionDoubleType   -> ((l: Number, r: Number) => boolean(toQuaternionDouble(l) == toQuaternionDouble(r))),
-    QuaternionBigDecType -> ((l: Number, r: Number) => boolean(toQuaternionBigDecimal(l) == toQuaternionBigDecimal(r))),
+    QuaternionBigIntType   -> ((l: Number, r: Number) => boolean(toQuaternionBigInt(l) != toQuaternionBigInt(r))),
+    QuaternionRationalType -> ((l: Number, r: Number) => boolean(toQuaternionRational(l) != toQuaternionRational(r))),
+    QuaternionDoubleType   -> ((l: Number, r: Number) => boolean(toQuaternionDouble(l) != toQuaternionDouble(r))),
+    QuaternionBigDecType -> ((l: Number, r: Number) => boolean(toQuaternionBigDecimal(l) != toQuaternionBigDecimal(r))),
   )
 
   relation(
