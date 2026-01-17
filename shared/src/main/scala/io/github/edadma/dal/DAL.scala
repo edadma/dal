@@ -481,10 +481,14 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
         }
       case a: boxed.Double  => if (a < 0) new ComplexDouble(0, sqrt(-a)) else sqrt(a)
       case a: BigDecimal    => if (a < 0) new ComplexBigDecimal(0, BigDecimalMath.sqrt(-a)) else BigDecimalMath.sqrt(a)
-      case a: ComplexBigInt => a.sqrt
-      case a: ComplexRational   => a.sqrt
-      case a: ComplexDouble     => a.sqrt
-      case a: ComplexBigDecimal => a.sqrt
+      case a: ComplexBigInt        => a.sqrt
+      case a: ComplexRational      => a.sqrt
+      case a: ComplexDouble        => a.sqrt
+      case a: ComplexBigDecimal    => a.sqrt
+      case a: QuaternionBigInt     => a.sqrt
+      case a: QuaternionRational   => a.sqrt
+      case a: QuaternionDouble     => a.sqrt
+      case a: QuaternionBigDecimal => a.sqrt
     }
 
   def absFunction(n: Any): Number =
@@ -498,6 +502,10 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case a: ComplexRational                   => a.abs
       case a: ComplexDouble                     => a.abs
       case a: ComplexBigDecimal                 => a.abs
+      case a: QuaternionBigInt                  => a.abs
+      case a: QuaternionRational                => a.abs
+      case a: QuaternionDouble                  => a.abs
+      case a: QuaternionBigDecimal              => a.abs
     }
 
   def lnFunction(n: Any): Number =
@@ -511,6 +519,10 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case a: ComplexRational                   => a.ln
       case a: ComplexDouble                     => a.ln
       case a: ComplexBigDecimal                 => a.ln
+      case a: QuaternionBigInt                  => a.ln
+      case a: QuaternionRational                => a.ln
+      case a: QuaternionDouble                  => a.ln
+      case a: QuaternionBigDecimal              => a.ln
     }
 
   def floorFunction(n: Any): Number =
@@ -588,22 +600,30 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         cos(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.cos(a)
-      case a: ComplexBigInt     => a.cos
-      case a: ComplexRational   => a.cos
-      case a: ComplexDouble     => a.cos
-      case a: ComplexBigDecimal => a.cos
+      case a: BigDecimal           => BigDecimalMath.cos(a)
+      case a: ComplexBigInt        => a.cos
+      case a: ComplexRational      => a.cos
+      case a: ComplexDouble        => a.cos
+      case a: ComplexBigDecimal    => a.cos
+      case a: QuaternionBigInt     => a.cos
+      case a: QuaternionRational   => a.cos
+      case a: QuaternionDouble     => a.cos
+      case a: QuaternionBigDecimal => a.cos
     }
 
   def sinFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         sin(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.sin(a)
-      case a: ComplexBigInt     => a.sin
-      case a: ComplexRational   => a.sin
-      case a: ComplexDouble     => a.sin
-      case a: ComplexBigDecimal => a.sin
+      case a: BigDecimal           => BigDecimalMath.sin(a)
+      case a: ComplexBigInt        => a.sin
+      case a: ComplexRational      => a.sin
+      case a: ComplexDouble        => a.sin
+      case a: ComplexBigDecimal    => a.sin
+      case a: QuaternionBigInt     => a.sin
+      case a: QuaternionRational   => a.sin
+      case a: QuaternionDouble     => a.sin
+      case a: QuaternionBigDecimal => a.sin
     }
 
   def tanFunction(n: Any): Number =
@@ -611,54 +631,122 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         tan(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       //			case a: BigDecimal => BigDecimalMath.tan( a )
-      case a: ComplexBigInt     => a.tan
-      case a: ComplexRational   => a.tan
-      case a: ComplexDouble     => a.tan
-      case a: ComplexBigDecimal => a.tan
+      case a: ComplexBigInt        => a.tan
+      case a: ComplexRational      => a.tan
+      case a: ComplexDouble        => a.tan
+      case a: ComplexBigDecimal    => a.tan
+      case a: QuaternionBigInt     => a.tan
+      case a: QuaternionRational   => a.tan
+      case a: QuaternionDouble     => a.tan
+      case a: QuaternionBigDecimal => a.tan
     }
 
   def acosFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         acos(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.acos(a)
-      case a: ComplexBigInt     => a.acos
-      case a: ComplexRational   => a.acos
-      case a: ComplexDouble     => a.acos
-      case a: ComplexBigDecimal => a.acos
+      case a: BigDecimal           => BigDecimalMath.acos(a)
+      case a: ComplexBigInt        => a.acos
+      case a: ComplexRational      => a.acos
+      case a: ComplexDouble        => a.acos
+      case a: ComplexBigDecimal    => a.acos
+      case a: QuaternionBigInt     => a.acos
+      case a: QuaternionRational   => a.acos
+      case a: QuaternionDouble     => a.acos
+      case a: QuaternionBigDecimal => a.acos
     }
 
   def asinFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         asin(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.asin(a)
-      case a: ComplexBigInt     => a.asin
-      case a: ComplexRational   => a.asin
-      case a: ComplexDouble     => a.asin
-      case a: ComplexBigDecimal => a.asin
+      case a: BigDecimal           => BigDecimalMath.asin(a)
+      case a: ComplexBigInt        => a.asin
+      case a: ComplexRational      => a.asin
+      case a: ComplexDouble        => a.asin
+      case a: ComplexBigDecimal    => a.asin
+      case a: QuaternionBigInt     => a.asin
+      case a: QuaternionRational   => a.asin
+      case a: QuaternionDouble     => a.asin
+      case a: QuaternionBigDecimal => a.asin
     }
 
   def atanFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         atan(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.atan(a)
-      case a: ComplexBigInt     => a.atan
-      case a: ComplexRational   => a.atan
-      case a: ComplexDouble     => a.atan
-      case a: ComplexBigDecimal => a.atan
+      case a: BigDecimal           => BigDecimalMath.atan(a)
+      case a: ComplexBigInt        => a.atan
+      case a: ComplexRational      => a.atan
+      case a: ComplexDouble        => a.atan
+      case a: ComplexBigDecimal    => a.atan
+      case a: QuaternionBigInt     => a.atan
+      case a: QuaternionRational   => a.atan
+      case a: QuaternionDouble     => a.atan
+      case a: QuaternionBigDecimal => a.atan
     }
 
   def expFunction(n: Any): Number =
     n match {
       case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
         exp(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
-      case a: BigDecimal        => BigDecimalMath.exp(a)
-      case a: ComplexBigInt     => a.exp
-      case a: ComplexRational   => a.exp
-      case a: ComplexDouble     => a.exp
-      case a: ComplexBigDecimal => a.exp
+      case a: BigDecimal           => BigDecimalMath.exp(a)
+      case a: ComplexBigInt        => a.exp
+      case a: ComplexRational      => a.exp
+      case a: ComplexDouble        => a.exp
+      case a: ComplexBigDecimal    => a.exp
+      case a: QuaternionBigInt     => a.exp
+      case a: QuaternionRational   => a.exp
+      case a: QuaternionDouble     => a.exp
+      case a: QuaternionBigDecimal => a.exp
+    }
+
+  def sinhFunction(n: Any): Number =
+    n match {
+      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+        sinh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
+      case a: BigDecimal           => (BigDecimalMath.exp(a) - BigDecimalMath.exp(-a)) / 2
+      case a: ComplexBigInt        => a.sinh
+      case a: ComplexRational      => a.sinh
+      case a: ComplexDouble        => a.sinh
+      case a: ComplexBigDecimal    => a.sinh
+      case a: QuaternionBigInt     => a.sinh
+      case a: QuaternionRational   => a.sinh
+      case a: QuaternionDouble     => a.sinh
+      case a: QuaternionBigDecimal => a.sinh
+    }
+
+  def coshFunction(n: Any): Number =
+    n match {
+      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+        cosh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
+      case a: BigDecimal           => (BigDecimalMath.exp(a) + BigDecimalMath.exp(-a)) / 2
+      case a: ComplexBigInt        => a.cosh
+      case a: ComplexRational      => a.cosh
+      case a: ComplexDouble        => a.cosh
+      case a: ComplexBigDecimal    => a.cosh
+      case a: QuaternionBigInt     => a.cosh
+      case a: QuaternionRational   => a.cosh
+      case a: QuaternionDouble     => a.cosh
+      case a: QuaternionBigDecimal => a.cosh
+    }
+
+  def tanhFunction(n: Any): Number =
+    n match {
+      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+        tanh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
+      case a: BigDecimal =>
+        val ea = BigDecimalMath.exp(a)
+        val ena = BigDecimalMath.exp(-a)
+        (ea - ena) / (ea + ena)
+      case a: ComplexBigInt        => a.tanh
+      case a: ComplexRational      => a.tanh
+      case a: ComplexDouble        => a.tanh
+      case a: ComplexBigDecimal    => a.tanh
+      case a: QuaternionBigInt     => a.tanh
+      case a: QuaternionRational   => a.tanh
+      case a: QuaternionDouble     => a.tanh
+      case a: QuaternionBigDecimal => a.tanh
     }
 
 }

@@ -6,6 +6,10 @@ import io.github.edadma.numbers.{
   ComplexDouble,
   ComplexInt,
   ComplexRational,
+  QuaternionBigDecimal,
+  QuaternionBigInt,
+  QuaternionDouble,
+  QuaternionRational,
   Rational,
   SmallRational,
 }
@@ -143,11 +147,15 @@ package object dal {
       case _: Rational          => RationalType
       case _: boxed.Double      => DoubleType
       case _: BigDecimal        => BigDecType
-      case _: ComplexInt        => ComplexIntType
-      case _: ComplexBigInt     => ComplexBigIntType
-      case _: ComplexRational   => ComplexRationalType
-      case _: ComplexDouble     => ComplexDoubleType
-      case _: ComplexBigDecimal => ComplexBigDecType
+      case _: ComplexInt           => ComplexIntType
+      case _: ComplexBigInt        => ComplexBigIntType
+      case _: ComplexRational      => ComplexRationalType
+      case _: ComplexDouble        => ComplexDoubleType
+      case _: ComplexBigDecimal    => ComplexBigDecType
+      case _: QuaternionBigInt     => QuaternionBigIntType
+      case _: QuaternionRational   => QuaternionRationalType
+      case _: QuaternionDouble     => QuaternionDoubleType
+      case _: QuaternionBigDecimal => QuaternionBigDecType
     }
 
   def toBigInt(a: Number): BigInt =
