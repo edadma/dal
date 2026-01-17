@@ -1,6 +1,6 @@
 # DAL: Dynamic Arithmetic Logic
 
-![Scala Version](https://img.shields.io/badge/Scala-3.5.2-red.svg)
+![Scala Version](https://img.shields.io/badge/Scala-3.7.4-red.svg)
 ![Cross Platform](https://img.shields.io/badge/Platform-JVM%20%7C%20JS%20%7C%20Native-blue.svg)
 ![License](https://img.shields.io/badge/License-ISC-green.svg)
 
@@ -380,7 +380,7 @@ DAL is built on the [numbers](https://github.com/edadma/numbers) library which p
 ### SBT
 
 ```scala
-libraryDependencies += "io.github.edadma" %%% "dal" % "0.1.10"
+libraryDependencies += "io.github.edadma" %%% "dal" % "0.0.5"
 ```
 
 ### Development
