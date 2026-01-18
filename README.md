@@ -380,7 +380,7 @@ DAL is built on the [numbers](https://github.com/edadma/numbers) library which p
 ### SBT
 
 ```scala
-libraryDependencies += "io.github.edadma" %%% "dal" % "0.0.5"
+libraryDependencies += "io.github.edadma" %%% "dal" % "0.0.7"
 ```
 
 ### Development
