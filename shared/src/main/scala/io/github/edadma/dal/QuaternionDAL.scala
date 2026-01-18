@@ -1,6 +1,6 @@
 package io.github.edadma.dal
 
-import io.github.edadma.numbers.BigDecimalMath
+import io.github.edadma.numbers.{BigDecimalMath, SmallRational}
 import io.github.edadma.numbers.BigDecimalMath.decimal128._
 
 import java.{lang => boxed}
@@ -11,6 +11,7 @@ object QuaternionDAL extends DAL {
   special(DoubleType, ComplexBigIntType, ComplexDoubleType)
   special(BigDecType, ComplexBigIntType, ComplexBigDecType)
   special(RationalType, ComplexBigIntType, ComplexRationalType)
+  special(SmallRationalType, ComplexBigIntType, ComplexRationalType)
   special(DoubleType, ComplexRationalType, ComplexDoubleType)
   special(BigDecType, ComplexRationalType, ComplexBigDecType)
   special(BigDecType, ComplexDoubleType, ComplexBigDecType)
@@ -18,6 +19,7 @@ object QuaternionDAL extends DAL {
   special(DoubleType, QuaternionBigIntType, QuaternionDoubleType)
   special(BigDecType, QuaternionBigIntType, QuaternionBigDecType)
   special(RationalType, QuaternionBigIntType, QuaternionRationalType)
+  special(SmallRationalType, QuaternionBigIntType, QuaternionRationalType)
   special(DoubleType, QuaternionRationalType, QuaternionDoubleType)
   special(BigDecType, QuaternionRationalType, QuaternionBigDecType)
   special(BigDecType, QuaternionDoubleType, QuaternionBigDecType)
@@ -34,6 +36,7 @@ object QuaternionDAL extends DAL {
     IntType             -> ((l: Number, r: Number) => maybePromote(l.longValue + r.longValue)),
     LongType            -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) + toBigInt(r))),
     BigIntType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) + toBigInt(r))),
+    SmallRationalType   -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeAdd, _ + _)),
     RationalType        -> ((l: Number, r: Number) => maybeDemote(toRational(l) + toRational(r))),
     DoubleType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue + r.doubleValue: Number)),
     BigDecType          -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) + toBigDecimal(b))),
@@ -60,6 +63,7 @@ object QuaternionDAL extends DAL {
     IntType             -> ((l: Number, r: Number) => maybePromote(l.longValue - r.longValue)),
     LongType            -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) - toBigInt(r))),
     BigIntType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) - toBigInt(r))),
+    SmallRationalType   -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeSubtract, _ - _)),
     RationalType        -> ((l: Number, r: Number) => maybeDemote(toRational(l) - toRational(r))),
     DoubleType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue - r.doubleValue: Number)),
     BigDecType          -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) - toBigDecimal(b))),
@@ -86,6 +90,7 @@ object QuaternionDAL extends DAL {
     IntType             -> ((l: Number, r: Number) => maybePromote(l.longValue * r.longValue)),
     LongType            -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) * toBigInt(r))),
     BigIntType          -> ((l: Number, r: Number) => maybeDemote(toBigInt(l) * toBigInt(r))),
+    SmallRationalType   -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeMultiply, _ * _)),
     RationalType        -> ((l: Number, r: Number) => maybeDemote(toRational(l) * toRational(r))),
     DoubleType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue * r.doubleValue: Number)),
     BigDecType          -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) * toBigDecimal(b))),
@@ -112,6 +117,7 @@ object QuaternionDAL extends DAL {
     IntType             -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
     LongType            -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
     BigIntType          -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
+    SmallRationalType   -> ((l: Number, r: Number) => safeSmallRationalOp(l, r, SmallRational.safeDivide, _ / _)),
     RationalType        -> ((l: Number, r: Number) => maybeDemote(toRational(l) / toRational(r))),
     DoubleType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     BigDecType          -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) / toBigDecimal(b))),
@@ -138,6 +144,7 @@ object QuaternionDAL extends DAL {
     IntType             -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     LongType            -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     BigIntType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
+    SmallRationalType   -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     RationalType        -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     DoubleType          -> ((l: Number, r: Number) => (DoubleType, l.doubleValue / r.doubleValue: Number)),
     BigDecType          -> ((a: Number, b: Number) => (BigDecType, toBigDecimal(a) / toBigDecimal(b))),
@@ -166,6 +173,13 @@ object QuaternionDAL extends DAL {
     IntType    -> ((l: Number, r: Number) => bigIntPow(l, r)),
     LongType   -> ((l: Number, r: Number) => bigIntPow(l, r)),
     BigIntType -> ((l: Number, r: Number) => bigIntPow(l, r)),
+    SmallRationalType -> ((l: Number, r: Number) => {
+      r match {
+        case i: boxed.Integer => maybeDemote(toSmallRational(l) ^ i)
+        case bi: BigInt       => (RationalType, toRational(l) ^ bi)
+        case _                => (DoubleType, pow(l.doubleValue, r.doubleValue): Number)
+      }
+    }),
     RationalType -> ((l: Number, r: Number) => {
       r match {
         case i: boxed.Integer => maybeDemote(toRational(l) ^ i)
@@ -210,6 +224,7 @@ object QuaternionDAL extends DAL {
     IntType                -> ((l: Number, r: Number) => boolean(l == r)),
     LongType               -> ((l: Number, r: Number) => boolean(l.longValue == r.longValue)),
     BigIntType             -> ((l: Number, r: Number) => boolean(toBigInt(l) == toBigInt(r))),
+    SmallRationalType      -> ((l: Number, r: Number) => boolean(toSmallRational(l) == toSmallRational(r))),
     RationalType           -> ((l: Number, r: Number) => boolean(toRational(l) == toRational(r))),
     DoubleType             -> ((l: Number, r: Number) => boolean(l.doubleValue == r.doubleValue)),
     BigDecType             -> ((l: Number, r: Number) => boolean(toBigDecimal(l) == toBigDecimal(r))),
@@ -228,6 +243,7 @@ object QuaternionDAL extends DAL {
     IntType                -> ((l: Number, r: Number) => boolean(l != r)),
     LongType               -> ((l: Number, r: Number) => boolean(l.longValue != r.longValue)),
     BigIntType             -> ((l: Number, r: Number) => boolean(toBigInt(l) != toBigInt(r))),
+    SmallRationalType      -> ((l: Number, r: Number) => boolean(toSmallRational(l) != toSmallRational(r))),
     RationalType           -> ((l: Number, r: Number) => boolean(toRational(l) != toRational(r))),
     DoubleType             -> ((l: Number, r: Number) => boolean(l.doubleValue != r.doubleValue)),
     BigDecType             -> ((l: Number, r: Number) => boolean(toBigDecimal(l) != toBigDecimal(r))),
@@ -243,42 +259,46 @@ object QuaternionDAL extends DAL {
 
   relation(
     Symbol("<"),
-    IntType      -> ((l: Number, r: Number) => boolean(l.intValue < r.intValue)),
-    LongType     -> ((l: Number, r: Number) => boolean(l.longValue < r.longValue)),
-    BigIntType   -> ((l: Number, r: Number) => boolean(toBigInt(l) < toBigInt(r))),
-    RationalType -> ((l: Number, r: Number) => boolean(toRational(l) < toRational(r))),
-    DoubleType   -> ((l: Number, r: Number) => boolean(l.doubleValue < r.doubleValue)),
-    BigDecType   -> ((l: Number, r: Number) => boolean(toBigDecimal(l) < toBigDecimal(r))),
+    IntType           -> ((l: Number, r: Number) => boolean(l.intValue < r.intValue)),
+    LongType          -> ((l: Number, r: Number) => boolean(l.longValue < r.longValue)),
+    BigIntType        -> ((l: Number, r: Number) => boolean(toBigInt(l) < toBigInt(r))),
+    SmallRationalType -> ((l: Number, r: Number) => boolean(toSmallRational(l) < toSmallRational(r))),
+    RationalType      -> ((l: Number, r: Number) => boolean(toRational(l) < toRational(r))),
+    DoubleType        -> ((l: Number, r: Number) => boolean(l.doubleValue < r.doubleValue)),
+    BigDecType        -> ((l: Number, r: Number) => boolean(toBigDecimal(l) < toBigDecimal(r))),
   )
 
   relation(
     Symbol(">"),
-    IntType      -> ((l: Number, r: Number) => boolean(l.intValue > r.intValue)),
-    LongType     -> ((l: Number, r: Number) => boolean(l.longValue > r.longValue)),
-    BigIntType   -> ((l: Number, r: Number) => boolean(toBigInt(l) > toBigInt(r))),
-    RationalType -> ((l: Number, r: Number) => boolean(toRational(l) > toRational(r))),
-    DoubleType   -> ((l: Number, r: Number) => boolean(l.doubleValue > r.doubleValue)),
-    BigDecType   -> ((l: Number, r: Number) => boolean(toBigDecimal(l) > toBigDecimal(r))),
+    IntType           -> ((l: Number, r: Number) => boolean(l.intValue > r.intValue)),
+    LongType          -> ((l: Number, r: Number) => boolean(l.longValue > r.longValue)),
+    BigIntType        -> ((l: Number, r: Number) => boolean(toBigInt(l) > toBigInt(r))),
+    SmallRationalType -> ((l: Number, r: Number) => boolean(toSmallRational(l) > toSmallRational(r))),
+    RationalType      -> ((l: Number, r: Number) => boolean(toRational(l) > toRational(r))),
+    DoubleType        -> ((l: Number, r: Number) => boolean(l.doubleValue > r.doubleValue)),
+    BigDecType        -> ((l: Number, r: Number) => boolean(toBigDecimal(l) > toBigDecimal(r))),
   )
 
   relation(
     Symbol("<="),
-    IntType      -> ((l: Number, r: Number) => boolean(l.intValue <= r.intValue)),
-    LongType     -> ((l: Number, r: Number) => boolean(l.longValue <= r.longValue)),
-    BigIntType   -> ((l: Number, r: Number) => boolean(toBigInt(l) <= toBigInt(r))),
-    RationalType -> ((l: Number, r: Number) => boolean(toRational(l) <= toRational(r))),
-    DoubleType   -> ((l: Number, r: Number) => boolean(l.doubleValue <= r.doubleValue)),
-    BigDecType   -> ((l: Number, r: Number) => boolean(toBigDecimal(l) <= toBigDecimal(r))),
+    IntType           -> ((l: Number, r: Number) => boolean(l.intValue <= r.intValue)),
+    LongType          -> ((l: Number, r: Number) => boolean(l.longValue <= r.longValue)),
+    BigIntType        -> ((l: Number, r: Number) => boolean(toBigInt(l) <= toBigInt(r))),
+    SmallRationalType -> ((l: Number, r: Number) => boolean(toSmallRational(l) <= toSmallRational(r))),
+    RationalType      -> ((l: Number, r: Number) => boolean(toRational(l) <= toRational(r))),
+    DoubleType        -> ((l: Number, r: Number) => boolean(l.doubleValue <= r.doubleValue)),
+    BigDecType        -> ((l: Number, r: Number) => boolean(toBigDecimal(l) <= toBigDecimal(r))),
   )
 
   relation(
     Symbol(">="),
-    IntType      -> ((l: Number, r: Number) => boolean(l.intValue >= r.intValue)),
-    LongType     -> ((l: Number, r: Number) => boolean(l.longValue >= r.longValue)),
-    BigIntType   -> ((l: Number, r: Number) => boolean(toBigInt(l) >= toBigInt(r))),
-    RationalType -> ((l: Number, r: Number) => boolean(toRational(l) >= toRational(r))),
-    DoubleType   -> ((l: Number, r: Number) => boolean(l.doubleValue >= r.doubleValue)),
-    BigDecType   -> ((l: Number, r: Number) => boolean(toBigDecimal(l) >= toBigDecimal(r))),
+    IntType           -> ((l: Number, r: Number) => boolean(l.intValue >= r.intValue)),
+    LongType          -> ((l: Number, r: Number) => boolean(l.longValue >= r.longValue)),
+    BigIntType        -> ((l: Number, r: Number) => boolean(toBigInt(l) >= toBigInt(r))),
+    SmallRationalType -> ((l: Number, r: Number) => boolean(toSmallRational(l) >= toSmallRational(r))),
+    RationalType      -> ((l: Number, r: Number) => boolean(toRational(l) >= toRational(r))),
+    DoubleType        -> ((l: Number, r: Number) => boolean(l.doubleValue >= r.doubleValue)),
+    BigDecType        -> ((l: Number, r: Number) => boolean(toBigDecimal(l) >= toBigDecimal(r))),
   )
 
   relation(
@@ -320,12 +340,13 @@ object QuaternionDAL extends DAL {
 
   operation(
     Symbol("compare"),
-    IntType      -> ((l: Number, r: Number) => (IntType, l.intValue.compare(r.intValue): Number)),
-    LongType     -> ((l: Number, r: Number) => (IntType, l.longValue.compare(r.longValue): Number)),
-    BigIntType   -> ((l: Number, r: Number) => (IntType, toBigInt(l).compare(toBigInt(r)): Number)),
-    RationalType -> ((l: Number, r: Number) => (IntType, toRational(l).compare(toRational(r)): Number)),
-    DoubleType   -> ((l: Number, r: Number) => (IntType, l.doubleValue.compare(r.doubleValue): Number)),
-    BigDecType   -> ((l: Number, r: Number) => (IntType, toBigDecimal(l).compare(toBigDecimal(r)): Number)),
+    IntType           -> ((l: Number, r: Number) => (IntType, l.intValue.compare(r.intValue): Number)),
+    LongType          -> ((l: Number, r: Number) => (IntType, l.longValue.compare(r.longValue): Number)),
+    BigIntType        -> ((l: Number, r: Number) => (IntType, toBigInt(l).compare(toBigInt(r)): Number)),
+    SmallRationalType -> ((l: Number, r: Number) => (IntType, toSmallRational(l).compare(toSmallRational(r)): Number)),
+    RationalType      -> ((l: Number, r: Number) => (IntType, toRational(l).compare(toRational(r)): Number)),
+    DoubleType        -> ((l: Number, r: Number) => (IntType, l.doubleValue.compare(r.doubleValue): Number)),
+    BigDecType        -> ((l: Number, r: Number) => (IntType, toBigDecimal(l).compare(toBigDecimal(r)): Number)),
   )
 
 }

@@ -109,13 +109,15 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def toQuaternionRational(a: Number): QuaternionRational =
     a match {
-      case bi: BigInt          => QuaternionRational(toRational(bi))
-      case i: boxed.Integer    => QuaternionRational(toRational(i))
-      case r: Rational         => QuaternionRational(r)
-      case cbi: ComplexBigInt  => QuaternionRational(toRational(cbi.re), toRational(cbi.im), 0, 0)
-      case cr: ComplexRational => QuaternionRational(cr.re, cr.im, 0, 0)
-      case q: QuaternionBigInt => QuaternionRational(toRational(q.a), toRational(q.b), toRational(q.c), toRational(q.d))
-      case _                   => sys.error("can't convert from " + a)
+      case bi: BigInt            => QuaternionRational(toRational(bi))
+      case i: boxed.Integer      => QuaternionRational(toRational(i))
+      case sr: SmallRational     => QuaternionRational(sr.toRational)
+      case r: Rational           => QuaternionRational(r)
+      case cbi: ComplexBigInt    => QuaternionRational(toRational(cbi.re), toRational(cbi.im), 0, 0)
+      case cr: ComplexRational   => QuaternionRational(cr.re, cr.im, 0, 0)
+      case q: QuaternionBigInt   => QuaternionRational(toRational(q.a), toRational(q.b), toRational(q.c), toRational(q.d))
+      case qr: QuaternionRational => qr
+      case _                     => sys.error("can't convert from " + a)
     }
 
   def toComplexDouble(a: Number): ComplexDouble =
@@ -137,6 +139,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case q: QuaternionDouble => q
       case i: boxed.Integer    => QuaternionDouble(i.doubleValue)
       case d: boxed.Double     => QuaternionDouble(d)
+      case sr: SmallRational   => QuaternionDouble(sr.doubleValue)
       case r: Rational         => QuaternionDouble(r.doubleValue)
       case bi: BigInt          => QuaternionDouble(bi.doubleValue)
       case cbi: ComplexBigInt  => QuaternionDouble(cbi.re.doubleValue, cbi.im.doubleValue, 0, 0)
@@ -184,6 +187,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
       case bd: BigDecimal        => QuaternionBigDecimal(bd)
       case i: boxed.Integer      => QuaternionBigDecimal(i.asInstanceOf[Int])
       case d: boxed.Double       => QuaternionBigDecimal(d.asInstanceOf[Double])
+      case sr: SmallRational     => QuaternionBigDecimal(sr.doubleValue)
       case Rational(n, d) =>
         val quo = toBigDecimal(n) / toBigDecimal(d)
 
@@ -432,13 +436,14 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def negate(n: Number): Number =
     n match {
-      case a: boxed.Integer => -a
-      case a: boxed.Long    => -a
-      case a: BigInt        => -a
-      case a: Rational      => -a
-      case a: boxed.Double  => -a
-      case a: BigDecimal    => -a
-      case a: ComplexBigInt => -a
+      case a: boxed.Integer    => -a
+      case a: boxed.Long       => -a
+      case a: BigInt           => -a
+      case a: SmallRational    => -a
+      case a: Rational         => -a
+      case a: boxed.Double     => -a
+      case a: BigDecimal       => -a
+      case a: ComplexBigInt    => -a
     }
 
   def invert(n: Number): (Type, Number) =
@@ -462,6 +467,22 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
         bisqrt(a.abs) match {
           case Left(ir)  => if (a < 0) new ComplexBigInt(0, ir) else maybeDemote(ir)._2
           case Right(dr) => if (a < 0) new ComplexDouble(0, dr.doubleValue) else dr
+        }
+      case a: SmallRational =>
+        val ar = a.abs
+        val isNegative = a.numerator < 0
+
+        def rsqrt = if (isNegative) new ComplexDouble(0, sqrt(ar.doubleValue)) else sqrt(ar.doubleValue).asInstanceOf[Number]
+
+        bisqrt(BigInt(ar.numerator)) match {
+          case Left(irn) if irn.isValidLong =>
+            bisqrt(BigInt(ar.denominator)) match {
+              case Left(ird) if ird.isValidLong =>
+                val res = SmallRational(irn.toLong, ird.toLong)
+                if (isNegative) new ComplexRational(0, res.toRational) else res
+              case _ => rsqrt
+            }
+          case _ => rsqrt
         }
       case a: Rational =>
         val ar = a.abs
@@ -495,6 +516,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                     => maybePromote(abs(a.longValue))._2
       case a: BigInt                            => maybeDemote(a.abs)._2
+      case a: SmallRational                     => a.abs
       case a: io.github.edadma.numbers.Rational => a.abs
       case a: boxed.Double                      => abs(a)
       case a: BigDecimal                        => a.abs
@@ -512,6 +534,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                     => log(a.doubleValue)
       case a: BigInt                            => log(a.doubleValue)
+      case a: SmallRational                     => log(a.doubleValue)
       case a: io.github.edadma.numbers.Rational => log(a.doubleValue)
       case a: boxed.Double                      => log(a)
       case a: BigDecimal                        => BigDecimalMath.ln(a)
@@ -529,6 +552,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                     => a
       case a: BigInt                            => maybeDemote(a)._2
+      case a: SmallRational                     => a.toRational.floor
       case a: io.github.edadma.numbers.Rational => a.floor
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.FLOOR)
@@ -548,6 +572,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
     n match {
       case a: boxed.Integer                     => a
       case a: BigInt                            => maybeDemote(a)._2
+      case a: SmallRational                     => a.toRational.ceil
       case a: io.github.edadma.numbers.Rational => a.ceil
       case a: boxed.Double =>
         val f = BigDecimal(a).setScale(0, BigDecimal.RoundingMode.CEILING)
@@ -598,7 +623,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def cosFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         cos(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.cos(a)
       case a: ComplexBigInt        => a.cos
@@ -613,7 +638,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def sinFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         sin(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.sin(a)
       case a: ComplexBigInt        => a.sin
@@ -628,7 +653,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def tanFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         tan(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       //			case a: BigDecimal => BigDecimalMath.tan( a )
       case a: ComplexBigInt        => a.tan
@@ -643,7 +668,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def acosFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         acos(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.acos(a)
       case a: ComplexBigInt        => a.acos
@@ -658,7 +683,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def asinFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         asin(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.asin(a)
       case a: ComplexBigInt        => a.asin
@@ -673,7 +698,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def atanFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         atan(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.atan(a)
       case a: ComplexBigInt        => a.atan
@@ -688,7 +713,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def expFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         exp(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => BigDecimalMath.exp(a)
       case a: ComplexBigInt        => a.exp
@@ -703,7 +728,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def sinhFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         sinh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => (BigDecimalMath.exp(a) - BigDecimalMath.exp(-a)) / 2
       case a: ComplexBigInt        => a.sinh
@@ -718,7 +743,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def coshFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         cosh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal           => (BigDecimalMath.exp(a) + BigDecimalMath.exp(-a)) / 2
       case a: ComplexBigInt        => a.cosh
@@ -733,7 +758,7 @@ abstract class DAL(implicit var bdmath: BigDecimalMath) {
 
   def tanhFunction(n: Any): Number =
     n match {
-      case _: boxed.Integer | _: BigInt | _: Rational | _: boxed.Double =>
+      case _: boxed.Integer | _: BigInt | _: SmallRational | _: Rational | _: boxed.Double =>
         tanh(n.asInstanceOf[Number].doubleValue).asInstanceOf[boxed.Double]
       case a: BigDecimal =>
         val ea = BigDecimalMath.exp(a)
